@@ -6,5 +6,5 @@
 	"description": "Plugin to interact with your vault easier using the PARA method.",
 	"author": "KevTheDevX <kevthedevx@pm.me>",
 	"authorUrl": "https://github.com/trucke",
-	"isDesktopOnly": true
+	"isDesktopOnly": false
 }
