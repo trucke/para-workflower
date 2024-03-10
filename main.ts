@@ -1,86 +1,147 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { Notice, Plugin, TFile } from 'obsidian';
+import { isPluginEnabled } from 'obsidian-dataview';
 
-// Remember to rename these classes and interfaces!
+import {
+	CreateProjectModal,
+	createProject,
+	archiveProject,
+	restoreProjectFile,
+	completeProject
+} from 'src/para-project';
+import { DEFAULT_SETTINGS, SettingTab } from 'src/settings';
+import { initializeVault } from 'src/init';
+import type {
+	CreateProjectProps,
+	CreateAreaProps,
+	CreateResourceProps,
+	PluginSettings
+} from 'src/types';
+import { CreateAreaModal, createArea } from 'src/para-area';
+import { CreateResourceModal, createResource } from 'src/para-resource';
+import { ChooseProjectModal } from 'src/fuzzy-modal-projects';
 
-interface MyPluginSettings {
-	mySetting: string;
-}
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
-
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class ParaWorkflower extends Plugin {
+	settings: PluginSettings;
 
 	async onload() {
+		if (!isPluginEnabled(this.app)) {
+			new Notice('You need to install and enable dataview first!', 5000);
+			return;
+		}
+
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
-
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
-
-		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
+			id: 'para-workflower-init-vault',
+			name: 'Initialize vault',
 			callback: () => {
-				new SampleModal(this.app).open();
+				initializeVault(this.app.vault, this.settings).then(() => {
+					new Notice('Vault initialized', 5000);
+				});
 			}
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('Sample Editor Command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
+		})
 
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
+		this.addCommand({
+			id: 'para-workflower-create-project',
+			name: 'Create new Project',
+			callback: () => {
+				new CreateProjectModal(this.app, (result: CreateProjectProps) => {
+					createProject(this.app, this.settings, result).then(() => {
+						new Notice(`Project '${result.name}' created!`);
+					}).catch(() => { });
+				}).open();
+			},
+		});
+
+		this.addCommand({
+			id: 'para-workflower-create-area',
+			name: 'Create new Area',
+			callback: () => {
+				new CreateAreaModal(this.app, (result: CreateAreaProps) => {
+					createArea(this.app, this.settings, result).then(() => {
+						new Notice(`Area '${result.name}' created!`);
+					}).catch(() => { });
+				}).open();
+			},
+		});
+
+		this.addCommand({
+			id: 'para-workflower-create-resource',
+			name: 'Create new Resource',
+			callback: () => {
+				new CreateResourceModal(this.app, (result: CreateResourceProps) => {
+					createResource(this.app, this.settings, result).then(() => {
+						new Notice(`Resource '${result.name}' created!`);
+					}).catch(() => { });
+				}).open();
+			},
+		});
+
+		this.addCommand({
+			id: 'para-workflower-archive-project',
+			name: 'Archive current project',
+			callback: () => {
+				archiveProject(this.app, this.settings).then(() => {
+					new Notice('Project archived');
+				});
+			},
+		});
+
+		this.addCommand({
+			id: 'para-workflower-restore-current-project',
+			name: 'Restore open project from archive',
+			callback: () => {
+				const file = this.app.workspace.getActiveFile();
+				if (file !== null) {
+					restoreProjectFile(this.app, this.settings, file).then(() => {
+						new Notice('Project restored');
+					});
 				}
-			}
+			},
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addCommand({
+			id: 'para-workflower-restore-project',
+			name: 'Restore project from archive',
+			callback: async () => {
+				// big shout out to ChatGPT for this coding masterpiece....
+				// ... at least it produces somehow what i need ...
+				const archivedFiles: TFile[] = this.app.vault.getMarkdownFiles()
+					.filter((file: TFile) => file.path.contains(this.settings.archivePath));
+				const archivedProjectFiles = await Promise.all(archivedFiles.map(async (file: TFile) => {
+					let isProject: boolean = false;
+					await this.app.fileManager.processFrontMatter(file, (frontMatter) => {
+						const tags = frontMatter.tags || null;
+						if (tags !== null) {
+							isProject = (frontMatter.tags as Array<string>).includes('project');
+						}
+					});
+					return isProject ? file : null;
+				}));
+				const resultFileList: TFile[] = archivedProjectFiles.filter((file: TFile | null): file is TFile => file !== null);
 
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
+				new ChooseProjectModal(this.app, this, resultFileList).open();
+			},
 		});
 
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		this.addCommand({
+			id: 'para-workflower-complete-current-project',
+			name: 'Complete project',
+			callback: () => {
+				const file = this.app.workspace.getActiveFile();
+				if (file !== null) {
+					completeProject(this.app, this.settings, file).then(() => {
+						new Notice('Project completed and moved to archive');
+					});
+				}
+			},
+		});
+
+		this.addSettingTab(new SettingTab(this.app, this));
 	}
 
-	onunload() {
-
-	}
+	onunload() { }
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -91,44 +152,3 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
-
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		const {containerEl} = this;
-
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
-	}
-}

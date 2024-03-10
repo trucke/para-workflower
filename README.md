@@ -1,96 +1,85 @@
-# Obsidian Sample Plugin
+# PARA Workflower
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+`PARA Workflower` is an Obsidian plugin to make managing your Vault using the PARA Method, by Tiago Forte, a lot easier.  
+This plugin offers you a handful of very useful commands to  
+- Initialize your Vault and prepare it to use PARA method with this plugin
+- Create a new Project / Area / Resource
+- Archive the current Project
+- Restore the current Project or an archived Project by using fuzzy search
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+## What is the PARA Method?
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+A full article on the PARA method and its benefits can be found on this [blog post](https://fortelabs.co/blog/para/) by Tiago Forte.
 
-## First time developing plugins?
+## Installation
 
-Quick starting guide for new plugin devs:
+> [Dataview](https://github.com/blacksmithgu/obsidian-dataview) is required, please install it first.  
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+> Enable core plugin `Templates` and configure the templates folder to `Templates`
 
-## Releasing new releases
+#### Recommended
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+`PARA Workflower` is available in the Obsidian community plugin browser!
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+1. Search for "PARA Workflower" in Obsidian's community plugins browser
+2. Enable the plugin in your Obsidian settings (find "PARA Workflower" under "Community plugins").
+3. Check the settings (You can customize the directory of your PARA notes)
 
-## Adding your plugin to the community plugin list
+#### Manual
 
-- Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+Go to the [releases](https://github.com/trucke/para-workflower/releases) and download the latest `main.js` and `manifest.json` files.
+Create a folder called `para-workflower` inside `.obsidian/plugins` and place both files in it.
 
-## How to use
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+## Commands
+> Open command palette (default): `CTRL+p` or `CMD+p`
 
-## Manually installing the plugin
+| Command                             | Description                                                                                                                                     |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Initialize vault`                  | Initialize your vault by creating PARA folder structure and generate Templates for project, area, resource                                      |
+| `Create new Project`                | Opens a modal to speed up creating a new Project, puts the new project under your Projects folder and sets the status of the project to `draft` |
+| `Create new Area`                   | Opens a modal to speed up creating a new Area, puts the new area under your Areas folder and also creates an companion folder for the new area  |
+| `Create new Resource`               | Opens a modal to speed up creating a new Resource, puts the new resource under your Resources folder                                            |
+| `Archive current project`           | Set the status for the currently open project to `aborted` and move it to your Archives folder                                                  |
+| `Restore open project from archive` | Set the status for the currently open and archived project to `pending` and move it from your Archive to your Projects folder                   |
+| `Restore project from archive`      | Opens a modal with a fuzzy search to quickly find an archived project you want to restore                                                       |
+| `Complete project`                  | Set current open and active project as completed, set `completed` to `true`, set status to `done` and move to archive                           |
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+## Tips
 
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
+For a better UX consider to configure the following settings:  
+- `Editor -> 'Default view for new tabs'` --> `Reading view`
+- `Editor -> 'Default editing mode'` --> `Source mode`
+- `Editor -> 'Properties in document'` --> `Source`
 
-## Funding URL
+#### Tags i use for project status
 
-You can include funding URLs where people who use your plugin can financially support it.
+| Status           | Description                                                                                                     |
+| ---------------- | --------------------------------------------------------------------------------------------------------------- |
+| `draft`          | Project created or initialized; has to be defined or needs some more specification                              |
+| `pending`        | Project is specified and ready to go                                                                            |
+| `in_process`     | Project is currently under development                                                                          |
+| `postprocessing` | Project is mostly done but needs some additional documentation or other post processing (this step is optional) |
+| `done`           | Project is done and documented                                                                                  |
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
-```
+## Acknowledgements
 
-If you have multiple URLs, you can also do:
+Big shout out, to the following amazing projects i relied on:
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
-```
+- [Periodic Notes](https://github.com/liamcain/obsidian-periodic-notes)
+- [Obsidian Periodic PARA](https://github.com/quanru/obsidian-periodic-para)
+- [para-shortcuts](https://github.com/gOATiful/para-shortcuts)
 
-## API Documentation
 
-See https://github.com/obsidianmd/obsidian-api
+## Further Improvements & Support
+
+Feel free to contribute.
+
+Contributors are very welcome and I appreciate every input.
+
+You can create an issue to report a bug, suggest an improvement for this plugin, ask a question, etc.
+
+You can make a pull request to contribute to this plugin development.
+

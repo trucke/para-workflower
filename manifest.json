@@ -1,11 +1,10 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.0",
+	"id": "para-workflower",
+	"name": "PARA Workflower",
+	"version": "0.1.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
-	"isDesktopOnly": false
+	"description": "Plugin to interact with your vault easier using the PARA method.",
+	"author": "KevTheDevX <kevthedevx@pm.me>",
+	"authorUrl": "https://github.com/trucke",
+	"isDesktopOnly": true
 }
