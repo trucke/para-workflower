@@ -2,12 +2,7 @@ import {
 	Vault,
 } from 'obsidian';
 
-import * as path from 'path';
-
-import {
-	readFileAsync,
-	getBasePath
-} from 'src/util';
+import { AREA_TEMPLATE, PROJECT_TEMPLATE, RESOURCE_TEMPLATE } from './templates';
 import type { PluginSettings } from './types';
 
 export async function initializeVault(vault: Vault, settings: PluginSettings) {
@@ -26,15 +21,15 @@ export async function initializeVault(vault: Vault, settings: PluginSettings) {
 }
 
 async function createTemplates(vault: Vault, templatesPath: string) {
-	const configDir = vault.configDir;
-	const pluginPath = path.join(getBasePath(), configDir, 'plugins', 'basb-para-workflower');
+	// const configDir = vault.configDir;
+	// const pluginPath = path.join(getBasePath(), configDir, 'plugins', 'basb-para-workflower');
+	// const areaTemplateData = await readFileAsync(path.join(pluginPath, 'templates', 'area-template.md'));
+	// const projectTemplateData = await readFileAsync(path.join(pluginPath, 'templates', 'project-template.md'));
+	// const resourceTemplateData = await readFileAsync(path.join(pluginPath, 'templates', 'resource-template.md'));
 
-	const areaTemplateData = await readFileAsync(path.join(pluginPath, 'templates', 'area-template.md'));
-	await vault.create(`${templatesPath}/Area Template.md`, areaTemplateData);
 
-	const projectTemplateData = await readFileAsync(path.join(pluginPath, 'templates', 'project-template.md'));
-	await vault.create(`${templatesPath}/Project Template.md`, projectTemplateData);
 
-	const resourceTemplateData = await readFileAsync(path.join(pluginPath, 'templates', 'resource-template.md'));
-	await vault.create(`${templatesPath}/Resource Template.md`, resourceTemplateData);
+	await vault.create(`${templatesPath}/Project Template.md`, PROJECT_TEMPLATE);
+	await vault.create(`${templatesPath}/Area Template.md`, AREA_TEMPLATE);
+	await vault.create(`${templatesPath}/Resource Template.md`, RESOURCE_TEMPLATE);
 }
