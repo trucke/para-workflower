@@ -1,4 +1,4 @@
-import { Modal, App, Setting, Notice, TFile } from "obsidian";
+import { Modal, App, Setting, Notice, TFile, normalizePath } from "obsidian";
 import type { PluginSettings, CreateAreaProps } from "src/types";
 
 export class CreateAreaModal extends Modal {
@@ -51,7 +51,7 @@ export async function createArea(app: App, settings: PluginSettings, properties:
 	const companionFoloder = `${folder}/_${properties.name.toLowerCase()}`;
 	const templateFile = `${settings.templatesFolder}/${settings.areaTemplateName}.md`;
 
-	const templateTFile = app.vault.getAbstractFileByPath(templateFile!);
+	const templateTFile = app.vault.getAbstractFileByPath(normalizePath(templateFile));
 	if (!templateTFile) {
 		new Notice(`The template '${templateFile}' does not exist!`);
 		return Promise.reject();

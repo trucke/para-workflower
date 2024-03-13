@@ -29,7 +29,7 @@ export class SettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		new Setting(containerEl).setName('Projects Folder:')
+		new Setting(containerEl).setName('Projects folder')
 			.setDesc('Where to place your projects?')
 			.addText((text) => text
 				.setPlaceholder(DEFAULT_SETTINGS.projectsPath)
@@ -42,7 +42,7 @@ export class SettingTab extends PluginSettingTab {
 				)
 			);
 
-		new Setting(containerEl).setName('Areas Folder:')
+		new Setting(containerEl).setName('Areas folder')
 			.setDesc('Where to place your areas?')
 			.addText((text) => text
 				.setPlaceholder(DEFAULT_SETTINGS.areasPath)
@@ -66,7 +66,7 @@ export class SettingTab extends PluginSettingTab {
 				})
 			);
 
-		new Setting(containerEl).setName('Resources Folder:')
+		new Setting(containerEl).setName('Resources folder')
 			.setDesc('Where to place your resources?')
 			.addText((text) => text
 				.setPlaceholder(DEFAULT_SETTINGS.resourcesPath)
@@ -79,7 +79,7 @@ export class SettingTab extends PluginSettingTab {
 				)
 			);
 
-		new Setting(containerEl).setName('Archive Folder:')
+		new Setting(containerEl).setName('Archive folder')
 			.setDesc('Where to place your archived files?')
 			.addText((text) => text
 				.setPlaceholder(DEFAULT_SETTINGS.archivePath)

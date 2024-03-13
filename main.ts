@@ -1,4 +1,4 @@
-import { Notice, Plugin, TFile } from 'obsidian';
+import { App, Notice, Plugin, TFile, normalizePath } from 'obsidian';
 import { isPluginEnabled } from 'obsidian-dataview';
 
 import {
@@ -33,7 +33,7 @@ export default class ParaWorkflower extends Plugin {
 		await this.loadSettings();
 
 		this.addCommand({
-			id: 'para-workflower-init-vault',
+			id: 'init-vault',
 			name: 'Initialize vault',
 			callback: () => {
 				initializeVault(this.app.vault, this.settings).then(() => {
@@ -43,7 +43,7 @@ export default class ParaWorkflower extends Plugin {
 		})
 
 		this.addCommand({
-			id: 'para-workflower-create-project',
+			id: 'create-project',
 			name: 'Create new Project',
 			callback: () => {
 				new CreateProjectModal(this.app, (result: CreateProjectProps) => {
@@ -55,7 +55,7 @@ export default class ParaWorkflower extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'para-workflower-create-area',
+			id: 'create-area',
 			name: 'Create new Area',
 			callback: () => {
 				new CreateAreaModal(this.app, (result: CreateAreaProps) => {
@@ -67,7 +67,7 @@ export default class ParaWorkflower extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'para-workflower-create-resource',
+			id: 'create-resource',
 			name: 'Create new Resource',
 			callback: () => {
 				new CreateResourceModal(this.app, (result: CreateResourceProps) => {
@@ -79,7 +79,7 @@ export default class ParaWorkflower extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'para-workflower-archive-project',
+			id: 'archive-project',
 			name: 'Archive current project',
 			callback: () => {
 				archiveProject(this.app, this.settings).then(() => {
@@ -89,7 +89,7 @@ export default class ParaWorkflower extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'para-workflower-restore-current-project',
+			id: 'restore-current-project',
 			name: 'Restore open project from archive',
 			callback: () => {
 				const file = this.app.workspace.getActiveFile();
@@ -102,31 +102,17 @@ export default class ParaWorkflower extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'para-workflower-restore-project',
+			id: 'restore-project',
 			name: 'Restore project from archive',
-			callback: async () => {
-				// big shout out to ChatGPT for this coding masterpiece....
-				// ... at least it produces somehow what i need ...
-				const archivedFiles: TFile[] = this.app.vault.getMarkdownFiles()
-					.filter((file: TFile) => file.path.contains(this.settings.archivePath));
-				const archivedProjectFiles = await Promise.all(archivedFiles.map(async (file: TFile) => {
-					let isProject: boolean = false;
-					await this.app.fileManager.processFrontMatter(file, (frontMatter) => {
-						const tags = frontMatter.tags || null;
-						if (tags !== null) {
-							isProject = (frontMatter.tags as Array<string>).includes('project');
-						}
-					});
-					return isProject ? file : null;
-				}));
-				const resultFileList: TFile[] = archivedProjectFiles.filter((file: TFile | null): file is TFile => file !== null);
-
-				new ChooseProjectModal(this.app, this, resultFileList).open();
+			callback: () => {
+				getArchivedProjects(this.app, this.settings).then((files) => {
+					new ChooseProjectModal(this.app, this, files).open();
+				});
 			},
 		});
 
 		this.addCommand({
-			id: 'para-workflower-complete-current-project',
+			id: 'complete-current-project',
 			name: 'Complete project',
 			callback: () => {
 				const file = this.app.workspace.getActiveFile();
@@ -152,3 +138,21 @@ export default class ParaWorkflower extends Plugin {
 	}
 }
 
+async function getArchivedProjects(app: App, settings: PluginSettings): Promise<TFile[]> {
+	const items: TFile[] = [];
+	const folder = app.vault.getFolderByPath(normalizePath(settings.archivePath));
+	if (folder) {
+		for (const child of folder.children) {
+			if (child instanceof TFile) {
+				await app.fileManager.processFrontMatter(child, (frontMatter) => {
+					const tags = (frontMatter.tags as Array<string>) || null;
+					if (tags !== null && tags.contains('project')) {
+						items.push(child);
+					}
+				});
+			}
+		}
+	}
+
+	return items;
+}

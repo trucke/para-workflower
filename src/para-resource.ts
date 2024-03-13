@@ -1,4 +1,4 @@
-import { Modal, App, Setting, Notice, TFile } from "obsidian";
+import { Modal, App, Setting, Notice, TFile, normalizePath } from "obsidian";
 import type { PluginSettings, CreateResourceProps } from "src/types";
 
 export class CreateResourceModal extends Modal {
@@ -50,7 +50,7 @@ export async function createResource(app: App, settings: PluginSettings, propert
 	const file = `${folder}/${properties.name}.md`;
 	const templateFile = `${settings.templatesFolder}/${settings.resourceTemplateName}.md`;
 
-	const templateTFile = app.vault.getAbstractFileByPath(templateFile!);
+	const templateTFile = app.vault.getAbstractFileByPath(normalizePath(templateFile));
 	if (!templateTFile) {
 		new Notice(`The template '${templateFile}' does not exist!`);
 		return Promise.reject();
