@@ -59,7 +59,7 @@ export async function createProject(app: App, settings: PluginSettings, properti
 	const file = `${folder}/${properties.name}.md`;
 	const templateFile = `${settings.templatesFolder}/${settings.projectTemplateName}.md`;
 
-	const templateTFile = app.vault.getAbstractFileByPath(templateFile!);
+	const templateTFile = app.vault.getAbstractFileByPath(normalizePath(templateFile));
 	if (!templateTFile) {
 		new Notice(`The template '${templateFile}' does not exist!`);
 		return Promise.reject();
