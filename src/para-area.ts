@@ -1,5 +1,6 @@
 import { Modal, App, Setting, Notice, TFile, normalizePath } from "obsidian";
 import type { PluginSettings, CreateAreaProps } from "src/types";
+import { containsInvalidCharacters } from "./utils";
 
 export class CreateAreaModal extends Modal {
 	result: CreateAreaProps = {
@@ -16,14 +17,24 @@ export class CreateAreaModal extends Modal {
 		const { contentEl } = this;
 
 		contentEl.createEl('h2', { text: 'What\'s the area?' });
-		new Setting(contentEl)
+		const areaNameSetting = new Setting(contentEl)
 			.setName("Name")
 			.addText((text) =>
 				text.onChange((value) => {
+					if (containsInvalidCharacters(value)) {
+						submit.setDisabled(true);
+						areaNameSetting.descEl.show();
+					} else {
+						areaNameSetting.descEl.hide();
+						submit.setDisabled(false);
+					}
 					this.result.name = value
 				}));
+		areaNameSetting.setDesc('Name contains invalid characters: [ ] # ^ | \\ / : ?');
+		areaNameSetting.descEl.setCssProps({ 'color': 'var(--background-modifier-error)' });
+		areaNameSetting.descEl.hide();
 
-		new Setting(contentEl)
+		const submit = new Setting(contentEl)
 			.addButton((btn) =>
 				btn
 					.setButtonText("Submit")

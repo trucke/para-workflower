@@ -1,5 +1,6 @@
 import { Modal, App, Setting, Notice, TFile, normalizePath } from "obsidian";
 import type { PluginSettings, CreateResourceProps } from "src/types";
+import { containsInvalidCharacters } from "./utils";
 
 export class CreateResourceModal extends Modal {
 	result: CreateResourceProps = {
@@ -16,14 +17,24 @@ export class CreateResourceModal extends Modal {
 		const { contentEl } = this;
 
 		contentEl.createEl('h2', { text: 'What\'s the resource?' });
-		new Setting(contentEl)
+		const resourceNameSetting = new Setting(contentEl)
 			.setName("Name")
 			.addText((text) =>
 				text.onChange((value) => {
+					if (containsInvalidCharacters(value)) {
+						submit.setDisabled(true);
+						resourceNameSetting.descEl.show();
+					} else {
+						resourceNameSetting.descEl.hide();
+						submit.setDisabled(false);
+					}
 					this.result.name = value
 				}));
+		resourceNameSetting.setDesc('Name contains invalid characters: [ ] # ^ | \\ / : ?');
+		resourceNameSetting.descEl.setCssProps({ 'color': 'var(--background-modifier-error)' });
+		resourceNameSetting.descEl.hide();
 
-		new Setting(contentEl)
+		const submit = new Setting(contentEl)
 			.addButton((btn) =>
 				btn
 					.setButtonText("Submit")

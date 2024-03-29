@@ -1,4 +1,5 @@
 import { Modal, App, Setting, Notice, TFile, normalizePath } from "obsidian";
+import { containsInvalidCharacters } from "src/utils";
 import type { PluginSettings, CreateProjectProps } from "src/types";
 
 export class CreateProjectModal extends Modal {
@@ -8,31 +9,66 @@ export class CreateProjectModal extends Modal {
 	};
 	onSubmit: (result: CreateProjectProps) => void;
 
+	projectNameValid: boolean = true;
+	areaNameValid: boolean = true;
+
 	constructor(app: App, onSubmit: (result: CreateProjectProps) => void) {
 		super(app);
 		this.onSubmit = onSubmit;
+	}
+
+	canSubmit(submitControl: Setting) {
+		if (this.projectNameValid && this.areaNameValid) {
+			submitControl.setDisabled(false);
+		} else {
+			submitControl.setDisabled(true);
+		}
 	}
 
 	onOpen() {
 		const { contentEl } = this;
 
 		contentEl.createEl('h2', { text: 'What\'s the project?' });
-		new Setting(contentEl)
+		const projectNameSetting = new Setting(contentEl)
 			.setName("Name")
 			.addText((text) =>
 				text.onChange((value) => {
+					if (containsInvalidCharacters(value)) {
+						this.projectNameValid = false;
+						submit.setDisabled(true);
+						projectNameSetting.descEl.show();
+					} else {
+						this.projectNameValid = true;
+						projectNameSetting.descEl.hide();
+						this.canSubmit(submit);
+					}
 					this.result.name = value
 				}));
+		projectNameSetting.setDesc('Name contains invalid characters: [ ] # ^ | \\ / : ?');
+		projectNameSetting.descEl.setCssProps({ 'color': 'var(--background-modifier-error)' });
+		projectNameSetting.descEl.hide();
 
 		contentEl.createEl('h2', { text: 'In which area you want to progress?' });
-		new Setting(contentEl)
+		const areaNameSetting = new Setting(contentEl)
 			.setName("Area")
 			.addText((text) =>
 				text.onChange((value) => {
-					this.result.area = value
+					if (containsInvalidCharacters(value)) {
+						this.areaNameValid = false;
+						submit.setDisabled(true);
+						areaNameSetting.descEl.show();
+					} else {
+						this.areaNameValid = true;
+						areaNameSetting.descEl.hide();
+						this.canSubmit(submit);
+					}
+					this.result.name = value
 				}));
+		areaNameSetting.setDesc('Name contains invalid characters: [ ] # ^ | \\ / : ?');
+		areaNameSetting.descEl.setCssProps({ 'color': 'var(--background-modifier-error)' });
+		areaNameSetting.descEl.hide();
 
-		new Setting(contentEl)
+		const submit = new Setting(contentEl)
 			.addButton((btn) =>
 				btn
 					.setButtonText("Submit")
@@ -57,6 +93,8 @@ export async function createProject(app: App, settings: PluginSettings, properti
 
 	const folder: string = settings.projectsPath;
 	const file = `${folder}/${properties.name}.md`;
+	console.log(file);
+	console.log(normalizePath(file));
 	const templateFile = `${settings.templatesFolder}/${settings.projectTemplateName}.md`;
 
 	const templateTFile = app.vault.getAbstractFileByPath(normalizePath(templateFile));
