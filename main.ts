@@ -19,6 +19,8 @@ import type {
 import { CreateAreaModal, createArea } from 'src/para-area';
 import { CreateResourceModal, createResource } from 'src/para-resource';
 import { ChooseProjectModal } from 'src/fuzzy-modal-projects';
+import { archive } from 'src/command-utils/archive';
+import { restore } from 'src/command-utils/restore';
 
 
 export default class ParaWorkflower extends Plugin {
@@ -85,6 +87,42 @@ export default class ParaWorkflower extends Plugin {
 				archiveProject(this.app, this.settings).then(() => {
 					new Notice('Project archived');
 				});
+			},
+		});
+
+		this.addCommand({
+			id: 'archive-current',
+			name: 'Archive current',
+			callback: () => {
+				const file = this.app.workspace.getActiveFile();
+				if (file !== null) {
+					archive(this.app, this.settings, file)
+						.then(() => {
+							new Notice(`'${file.basename}' archived`);
+						})
+						.catch((error) => {
+							console.error('[PARA Workflower] An error occurred during archiving:', error.message);
+							new Notice(`FAILED: ${error.message}`);
+						});
+				}
+			},
+		});
+		
+		this.addCommand({
+			id: 'restore-current',
+			name: 'Restore current',
+			callback: () => {
+				const file = this.app.workspace.getActiveFile();
+				if (file !== null) {
+					restore(this.app, this.settings, file)
+						.then(() => {
+							new Notice(`'${file.basename}' restored`);
+						})
+						.catch((error) => {
+							console.error('[PARA Workflower] An error occurred during restoring:', error.message);
+							new Notice(`FAILED: ${error.message}`);
+						});
+				}
 			},
 		});
 

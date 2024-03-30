@@ -1,4 +1,4 @@
-import { PluginSettingTab, Setting, debounce } from 'obsidian';
+import { PluginSettingTab, Setting, debounce, normalizePath } from 'obsidian';
 import type { App } from 'obsidian';
 
 import type ParaWorkflower from 'main';
@@ -36,7 +36,7 @@ export class SettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.projectsPath)
 				.onChange(
 					debounce(async (value) => {
-						this.plugin.settings.projectsPath = value;
+						this.plugin.settings.projectsPath = normalizePath(value);
 						await this.plugin.saveSettings();
 					}, 500)
 				)
@@ -49,7 +49,7 @@ export class SettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.areasPath)
 				.onChange(
 					debounce(async (value) => {
-						this.plugin.settings.areasPath = value;
+						this.plugin.settings.areasPath = normalizePath(value);
 						await this.plugin.saveSettings();
 					}, 500)
 				)
@@ -73,7 +73,7 @@ export class SettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.resourcesPath)
 				.onChange(
 					debounce(async (value) => {
-						this.plugin.settings.resourcesPath = value;
+						this.plugin.settings.resourcesPath = normalizePath(value);
 						await this.plugin.saveSettings();
 					}, 500)
 				)
@@ -86,7 +86,7 @@ export class SettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.archivePath)
 				.onChange(
 					debounce(async (value) => {
-						this.plugin.settings.archivePath = value;
+						this.plugin.settings.archivePath = normalizePath(value);
 						await this.plugin.saveSettings();
 					}, 500)
 				)

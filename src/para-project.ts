@@ -93,8 +93,6 @@ export async function createProject(app: App, settings: PluginSettings, properti
 
 	const folder: string = settings.projectsPath;
 	const file = `${folder}/${properties.name}.md`;
-	console.log(file);
-	console.log(normalizePath(file));
 	const templateFile = `${settings.templatesFolder}/${settings.projectTemplateName}.md`;
 
 	const templateTFile = app.vault.getAbstractFileByPath(normalizePath(templateFile));

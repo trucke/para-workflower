@@ -1,4 +1,4 @@
-import { Modal, App, Setting, Notice, TFile, normalizePath } from "obsidian";
+import { Modal, App, Setting, Notice, TFile, normalizePath, TFolder } from "obsidian";
 import type { PluginSettings, CreateAreaProps } from "src/types";
 import { containsInvalidCharacters } from "./utils";
 
@@ -92,3 +92,46 @@ export async function createArea(app: App, settings: PluginSettings, properties:
 		await app.workspace.getLeaf().openFile(fileCreated);
 	}
 }
+
+
+export async function archiveArea(app: App, settings: PluginSettings): Promise<void> {
+	const file: TFile = this.app.workspace.getActiveFile();
+	if (file === null) {
+		return Promise.reject();
+	}
+
+	const isInAreaDir: boolean = file.path.contains(settings.areasPath);
+	let hasAreaTag: boolean = false;
+	await app.fileManager.processFrontMatter(file, (frontMatter) => {
+		frontMatter.tags = frontMatter.tags || [];
+		hasAreaTag = frontMatter.tags.contains('area');
+	});
+
+	if (!isInAreaDir && !hasAreaTag) {
+		new Notice('File is not an area expected by the "PARA Workflower" plugin');
+		return Promise.reject();
+	}
+
+	let newBaseFilePath = normalizePath(
+		[
+			this.app.vault.getRoot().name,
+			settings.archivePath,
+			file.basename
+		].join("/")
+	);
+
+	await app.vault.createFolder(newBaseFilePath);
+	await app.fileManager.renameFile(file, normalizePath([newBaseFilePath, file.name].join('/')));
+
+	const companionFolder = [
+		this.app.vault.getRoot().name,
+		settings.areasPath,
+		`_${file.basename.toLowerCase()}`
+	].join("/");
+	const companionFolderTFolder = app.vault.getAbstractFileByPath(normalizePath(companionFolder));
+	if (companionFolderTFolder instanceof TFolder) {
+		await app.fileManager.renameFile(companionFolderTFolder,
+			normalizePath([newBaseFilePath, companionFolderTFolder.name].join('/')));
+	}
+}
+
