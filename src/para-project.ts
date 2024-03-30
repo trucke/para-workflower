@@ -62,7 +62,7 @@ export class CreateProjectModal extends Modal {
 						areaNameSetting.descEl.hide();
 						this.canSubmit(submit);
 					}
-					this.result.name = value
+					this.result.area = value
 				}));
 		areaNameSetting.setDesc('Name contains invalid characters: [ ] # ^ | \\ / : ?');
 		areaNameSetting.descEl.setCssProps({ 'color': 'var(--background-modifier-error)' });
