@@ -46,7 +46,7 @@ export default class ParaWorkflower extends Plugin {
 
 		this.addCommand({
 			id: 'create-project',
-			name: 'Create new Project',
+			name: 'Create new project',
 			callback: () => {
 				new CreateProjectModal(this.app, (result: CreateProjectProps) => {
 					createProject(this.app, this.settings, result).then(() => {
@@ -58,7 +58,7 @@ export default class ParaWorkflower extends Plugin {
 
 		this.addCommand({
 			id: 'create-area',
-			name: 'Create new Area',
+			name: 'Create new area',
 			callback: () => {
 				new CreateAreaModal(this.app, (result: CreateAreaProps) => {
 					createArea(this.app, this.settings, result).then(() => {
@@ -70,7 +70,7 @@ export default class ParaWorkflower extends Plugin {
 
 		this.addCommand({
 			id: 'create-resource',
-			name: 'Create new Resource',
+			name: 'Create new resource',
 			callback: () => {
 				new CreateResourceModal(this.app, (result: CreateResourceProps) => {
 					createResource(this.app, this.settings, result).then(() => {
