@@ -1,26 +1,26 @@
-import { App, Notice, Plugin, TFile, normalizePath } from 'obsidian';
+import { App, Notice, Plugin, TFile, TFolder } from 'obsidian';
 import { isPluginEnabled } from 'obsidian-dataview';
 
 import {
 	CreateProjectModal,
 	createProject,
-	archiveProject,
-	restoreProjectFile,
 	completeProject
 } from 'src/para-project';
 import { DEFAULT_SETTINGS, SettingTab } from 'src/settings';
 import { initializeVault } from 'src/init';
-import type {
+import {
 	CreateProjectProps,
 	CreateAreaProps,
 	CreateResourceProps,
-	PluginSettings
+	PluginSettings,
+	ArchiveItem,
+	ParaType
 } from 'src/types';
 import { CreateAreaModal, createArea } from 'src/para-area';
 import { CreateResourceModal, createResource } from 'src/para-resource';
-import { ChooseProjectModal } from 'src/fuzzy-modal-projects';
 import { archive } from 'src/command-utils/archive';
 import { restore } from 'src/command-utils/restore';
+import { RestoreParaItemModal } from 'src/modals/RestoreParaItemModal';
 
 
 export default class ParaWorkflower extends Plugin {
@@ -81,18 +81,8 @@ export default class ParaWorkflower extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'archive-project',
-			name: 'Archive current project',
-			callback: () => {
-				archiveProject(this.app, this.settings).then(() => {
-					new Notice('Project archived');
-				});
-			},
-		});
-
-		this.addCommand({
-			id: 'archive-current',
-			name: 'Archive current',
+			id: 'move-to-archive',
+			name: 'Move to archive',
 			callback: () => {
 				const file = this.app.workspace.getActiveFile();
 				if (file !== null) {
@@ -107,13 +97,13 @@ export default class ParaWorkflower extends Plugin {
 				}
 			},
 		});
-		
+
 		this.addCommand({
-			id: 'restore-current',
-			name: 'Restore current',
+			id: 'restore-from-archive',
+			name: 'Restore from archive',
 			callback: () => {
 				const file = this.app.workspace.getActiveFile();
-				if (file !== null) {
+				if (file !== null && this.isArchived(file)) {
 					restore(this.app, this.settings, file)
 						.then(() => {
 							new Notice(`'${file.basename}' restored`);
@@ -122,30 +112,12 @@ export default class ParaWorkflower extends Plugin {
 							console.error('[PARA Workflower] An error occurred during restoring:', error.message);
 							new Notice(`FAILED: ${error.message}`);
 						});
+				} else {
+					getArchivedParaItems(this.app, this.settings.archivePath)
+						.then((items) => {
+							new RestoreParaItemModal(this.app, this, items).open();
+						});
 				}
-			},
-		});
-
-		this.addCommand({
-			id: 'restore-current-project',
-			name: 'Restore open project from archive',
-			callback: () => {
-				const file = this.app.workspace.getActiveFile();
-				if (file !== null) {
-					restoreProjectFile(this.app, this.settings, file).then(() => {
-						new Notice('Project restored');
-					});
-				}
-			},
-		});
-
-		this.addCommand({
-			id: 'restore-project',
-			name: 'Restore project from archive',
-			callback: () => {
-				getArchivedProjects(this.app, this.settings).then((files) => {
-					new ChooseProjectModal(this.app, this, files).open();
-				});
 			},
 		});
 
@@ -174,23 +146,51 @@ export default class ParaWorkflower extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+
+	isArchived(file: TFile): boolean {
+		if (file.parent === null) {
+			return false;
+		}
+
+		return file.parent.path.contains(this.settings.archivePath);
+	}
 }
 
-async function getArchivedProjects(app: App, settings: PluginSettings): Promise<TFile[]> {
-	const items: TFile[] = [];
-	const folder = app.vault.getFolderByPath(normalizePath(settings.archivePath));
-	if (folder) {
-		for (const child of folder.children) {
-			if (child instanceof TFile) {
-				await app.fileManager.processFrontMatter(child, (frontMatter) => {
-					const tags = (frontMatter.tags as Array<string>) || null;
-					if (tags !== null && tags.contains('project')) {
-						items.push(child);
-					}
-				});
-			}
-		}
+async function getArchivedParaItems(app: App, archivePath: string) {
+	const items: ArchiveItem[] = [];
+	const archive = app.vault.getFolderByPath(archivePath);
+	if (archive) {
+		await walkArchive(archive, items, app);
 	}
 
 	return items;
 }
+
+async function walkArchive(folder: TFolder, items: ArchiveItem[], app: App) {
+	for (const child of folder.children) {
+		if (child instanceof TFolder && !child.name.startsWith('_')) {
+			walkArchive(child, items, app);
+		}
+
+		if (child instanceof TFile) {
+			await app.fileManager.processFrontMatter(child, (frontMatter) => {
+				const tags = (frontMatter.tags as Array<string>) || null;
+				if (tags !== null) {
+					const archiveItem: ArchiveItem = { file: child, type: null };
+					if (tags.contains(ParaType.Project)) {
+						archiveItem.type = ParaType.Project;
+					} else if (tags.contains(ParaType.Resource)) {
+						archiveItem.type = ParaType.Resource;
+					} else if (tags.contains(ParaType.Area)) {
+						archiveItem.type = ParaType.Area;
+					}
+
+					if (archiveItem.type !== null) {
+						items.push(archiveItem);
+					}
+				}
+			});
+		}
+	}
+}
+

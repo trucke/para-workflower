@@ -1,3 +1,4 @@
+import { TFile } from "obsidian";
 
 export interface PluginSettings {
 	projectsPath: string;
@@ -23,3 +24,15 @@ export interface CreateAreaProps {
 export interface CreateResourceProps {
 	name: string | null;
 }
+
+export enum ParaType {
+	Project = 'project',
+	Resource = 'resource',
+	Area = 'area'
+}
+
+export interface ArchiveItem {
+	file: TFile;
+	type: ParaType | null;
+}
+

@@ -130,66 +130,6 @@ export async function createProject(app: App, settings: PluginSettings, properti
 	}
 }
 
-export async function archiveProject(app: App, settings: PluginSettings): Promise<void> {
-	const file: TFile = this.app.workspace.getActiveFile();
-	if (file === null) {
-		return Promise.reject();
-	}
-
-	const isInProjectDir: boolean = file.path.contains(settings.projectsPath);
-	let hasProjectTag: boolean = false;
-	await app.fileManager.processFrontMatter(file, (frontMatter) => {
-		frontMatter.tags = frontMatter.tags || [];
-		hasProjectTag = frontMatter.tags.contains('project');
-	});
-
-	if (!isInProjectDir && !hasProjectTag) {
-		new Notice('File is not an active project');
-		return Promise.reject();
-	}
-
-	let newFilePath = normalizePath(
-		[
-			this.app.vault.getRoot().name,
-			settings.archivePath,
-			file.name
-		].join("/")
-	);
-
-	await app.vault.process(file, (data) => {
-		return data.replace(/^Status::.*$/m, "Status:: #aborted");
-	})
-
-	return app.fileManager.renameFile(file, newFilePath);
-}
-
-export async function restoreProjectFile(app: App, settings: PluginSettings, file: TFile): Promise<void> {
-	let hasProjectTag: boolean = false;
-	await app.fileManager.processFrontMatter(file, (frontMatter) => {
-		frontMatter.tags = frontMatter.tags || [];
-		hasProjectTag = frontMatter.tags.contains('project');
-	});
-
-	if (!hasProjectTag) {
-		new Notice('File is not a project');
-		return Promise.reject();
-	}
-
-	let newFilePath = normalizePath(
-		[
-			this.app.vault.getRoot().name,
-			settings.projectsPath,
-			file.name
-		].join("/")
-	);
-
-	await app.vault.process(file, (data) => {
-		return data.replace(/^Status::.*$/m, "Status:: #pending");
-	})
-
-	return app.fileManager.renameFile(file, newFilePath);
-}
-
 export async function completeProject(app: App, settings: PluginSettings, file: TFile): Promise<void> {
 	const isInProjectDir: boolean = file.path.contains(settings.projectsPath);
 	let hasProjectTag: boolean = false;

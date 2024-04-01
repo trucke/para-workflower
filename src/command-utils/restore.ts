@@ -25,7 +25,15 @@ export async function restore(app: App, settings: PluginSettings, file: TFile): 
 			}
 		});
 
-		switch (itemType) {
+		restoreByType(app, settings, file, itemType);
+	} catch (error) {
+		throw error;
+	}
+}
+
+export async function restoreByType(app: App, settings: PluginSettings, file: TFile, type: string): Promise<void> {
+	try {
+		switch (type) {
 			case 'project':
 				restoreProject(app, settings.projectsPath, file);
 				break;
@@ -38,8 +46,6 @@ export async function restore(app: App, settings: PluginSettings, file: TFile): 
 			default:
 				throw new Error('Unknown or unsupported type');
 		}
-
-
 	} catch (error) {
 		throw error;
 	}
