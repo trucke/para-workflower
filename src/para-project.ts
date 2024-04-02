@@ -31,6 +31,10 @@ export class CreateProjectModal extends Modal {
 				this.result.name = value;
 			}));
 
+		this.projectNameSetting.controlEl.addEventListener('keydown', (event) => {
+			if (event.key === 'Enter') { this.submit(); }
+		});
+
 		contentEl.createEl('h2', { text: 'In which area you want to progress?' });
 		this.areaNameSetting = new Setting(contentEl)
 			.setName('Area')
@@ -38,6 +42,10 @@ export class CreateProjectModal extends Modal {
 				this.isInputValid(this.areaNameSetting, value);
 				this.result.area = value;
 			}));
+
+		this.areaNameSetting.controlEl.addEventListener('keydown', (event) => {
+			if (event.key === 'Enter') { this.submit(); }
+		});
 
 		this.submitControl = new Setting(contentEl)
 			.addButton((btn) => btn
@@ -87,6 +95,7 @@ export class CreateProjectModal extends Modal {
 		errorMsg.appendChild(div);
 		return errorMsg;
 	}
+
 }
 
 export async function createProject(app: App, settings: PluginSettings, properties: CreateProjectProps): Promise<void> {
