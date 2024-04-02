@@ -169,7 +169,7 @@ async function getArchivedParaItems(app: App, archivePath: string) {
 async function walkArchive(folder: TFolder, items: ArchiveItem[], app: App) {
 	for (const child of folder.children) {
 		if (child instanceof TFolder && !child.name.startsWith('_')) {
-			walkArchive(child, items, app);
+			await walkArchive(child, items, app);
 		}
 
 		if (child instanceof TFile) {
