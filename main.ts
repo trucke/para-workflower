@@ -51,7 +51,12 @@ export default class ParaWorkflower extends Plugin {
 				new CreateProjectModal(this.app, (result: CreateProjectProps) => {
 					createProject(this.app, this.settings, result).then(() => {
 						new Notice(`Project '${result.name}' created!`);
-					}).catch(() => { });
+					}).catch((error) => {
+						if (typeof error == 'string') {
+							new Notice(error);
+						}
+						console.log(error);
+					});
 				}).open();
 			},
 		});
