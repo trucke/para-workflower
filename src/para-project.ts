@@ -1,87 +1,91 @@
-import { Modal, App, Setting, Notice, TFile, normalizePath } from "obsidian";
-import { containsInvalidCharacters } from "src/utils";
-import type { PluginSettings, CreateProjectProps } from "src/types";
+import { Modal, App, Setting, Notice, TFile, normalizePath } from 'obsidian';
+import { containsInvalidCharacters } from 'src/utils';
+import type { PluginSettings, CreateProjectProps } from 'src/types';
 
 export class CreateProjectModal extends Modal {
+	INVALID_INPUT_MSG: string = 'Name contains invalid characters: [ ] # ^ | \\ / : ?';
+
 	result: CreateProjectProps = {
 		name: null,
 		area: null
 	};
 	onSubmit: (result: CreateProjectProps) => void;
 
-	projectNameValid: boolean = true;
-	areaNameValid: boolean = true;
+	projectNameSetting: Setting;
+	areaNameSetting: Setting;
+	submitControl: Setting;
 
 	constructor(app: App, onSubmit: (result: CreateProjectProps) => void) {
 		super(app);
 		this.onSubmit = onSubmit;
 	}
 
-	canSubmit(submitControl: Setting) {
-		if (this.projectNameValid && this.areaNameValid) {
-			submitControl.setDisabled(false);
-		} else {
-			submitControl.setDisabled(true);
-		}
-	}
-
 	onOpen() {
 		const { contentEl } = this;
 
 		contentEl.createEl('h2', { text: 'What\'s the project?' });
-		const projectNameSetting = new Setting(contentEl)
-			.setName("Name")
-			.addText((text) =>
-				text.onChange((value) => {
-					if (containsInvalidCharacters(value)) {
-						this.projectNameValid = false;
-						submit.setDisabled(true);
-						projectNameSetting.descEl.show();
-					} else {
-						this.projectNameValid = true;
-						projectNameSetting.descEl.hide();
-						this.canSubmit(submit);
-					}
-					this.result.name = value
-				}));
-		projectNameSetting.setDesc('Name contains invalid characters: [ ] # ^ | \\ / : ?');
-		projectNameSetting.descEl.setCssProps({ 'color': 'var(--background-modifier-error)' });
-		projectNameSetting.descEl.hide();
+		this.projectNameSetting = new Setting(contentEl)
+			.setName('Name')
+			.addText((text) => text.onChange((value) => {
+				this.isInputValid(this.projectNameSetting, value)
+				this.result.name = value;
+			}));
 
 		contentEl.createEl('h2', { text: 'In which area you want to progress?' });
-		const areaNameSetting = new Setting(contentEl)
-			.setName("Area")
-			.addText((text) =>
-				text.onChange((value) => {
-					if (containsInvalidCharacters(value)) {
-						this.areaNameValid = false;
-						submit.setDisabled(true);
-						areaNameSetting.descEl.show();
-					} else {
-						this.areaNameValid = true;
-						areaNameSetting.descEl.hide();
-						this.canSubmit(submit);
-					}
-					this.result.area = value
-				}));
-		areaNameSetting.setDesc('Name contains invalid characters: [ ] # ^ | \\ / : ?');
-		areaNameSetting.descEl.setCssProps({ 'color': 'var(--background-modifier-error)' });
-		areaNameSetting.descEl.hide();
+		this.areaNameSetting = new Setting(contentEl)
+			.setName('Area')
+			.addText((text) => text.onChange((value) => {
+				this.isInputValid(this.areaNameSetting, value);
+				this.result.area = value;
+			}));
 
-		const submit = new Setting(contentEl)
-			.addButton((btn) =>
-				btn
-					.setButtonText("Submit")
-					.setCta()
-					.onClick(() => {
-						this.close();
-						this.onSubmit(this.result);
-					}));
+		this.submitControl = new Setting(contentEl)
+			.addButton((btn) => btn
+				.setButtonText('Submit')
+				.setCta()
+				.onClick(() => { this.submit() }));
 	}
 
 	onClose() {
 		let { contentEl } = this;
 		contentEl.empty();
+	}
+
+	isInputValid(el: Setting, value: string): boolean {
+		if (containsInvalidCharacters(value)) {
+			el.setDesc(this.error(this.INVALID_INPUT_MSG));
+			el.descEl.show();
+			return false;
+		}
+
+		el.setDesc('');
+		return true;
+	}
+
+	submit() {
+		if (this.result.name === null || this.result.name.length < 1) {
+			new Notice(this.error('Project name cannot be empty'));
+			return;
+		}
+
+		const projectValid = !this.projectNameSetting.descEl.isShown();
+		const areaValid = !this.areaNameSetting.descEl.isShown();
+		if (!projectValid || !areaValid) {
+			new Notice(this.error('Cannot create project. Check your inputs'));
+			return;
+		}
+
+		this.close()
+		this.onSubmit(this.result);
+	}
+
+	error(msg: string): DocumentFragment {
+		let errorMsg = document.createDocumentFragment();
+		const div = document.createElement('div');
+		div.textContent = msg;
+		div.setCssProps({ 'color': 'var(--background-modifier-error)' });
+		errorMsg.appendChild(div);
+		return errorMsg;
 	}
 }
 
@@ -119,7 +123,7 @@ export async function createProject(app: App, settings: PluginSettings, properti
 		}
 
 		if (properties.area !== null) {
-			templateContent = templateContent.replace("Area:: [[]]", `Area:: [[${properties.area}]]`);
+			templateContent = templateContent.replace('Area:: [[]]', `Area:: [[${properties.area}]]`);
 		}
 		const fileCreated = await app.vault.create(file, templateContent);
 		await app.fileManager.processFrontMatter(fileCreated, (frontMatter) => {
@@ -148,14 +152,14 @@ export async function completeProject(app: App, settings: PluginSettings, file: 
 			this.app.vault.getRoot().name,
 			settings.archivePath,
 			file.name
-		].join("/")
+		].join('/')
 	);
 
 	await app.fileManager.processFrontMatter(file, (frontMatter) => {
 		frontMatter.completed = true;
 	});
 	await app.vault.process(file, (data) => {
-		return data.replace(/^Status::.*$/m, "Status:: #done");
+		return data.replace(/^Status::.*$/m, 'Status:: #done');
 	})
 
 	return app.fileManager.renameFile(file, newFilePath);

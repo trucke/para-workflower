@@ -1,4 +1,4 @@
-import { Modal, App, Setting, Notice, TFile, normalizePath, TFolder } from "obsidian";
+import { Modal, App, Setting, Notice, TFile, normalizePath } from "obsidian";
 import type { PluginSettings, CreateAreaProps } from "src/types";
 import { containsInvalidCharacters } from "./utils";
 
