@@ -6,6 +6,7 @@ import type { PluginSettings } from './types';
 
 export const DEFAULT_SETTINGS: PluginSettings = {
 	projectsPath: '1-Projects',
+	useFolderStructure: false,
 	areasPath: '2-Areas',
 	useCompanionDir: true,
 	resourcesPath: '3-Resources',
@@ -42,6 +43,17 @@ export class SettingTab extends PluginSettingTab {
 				)
 			);
 
+		new Setting(containerEl).setName('User folder structure for projects')
+			.setDesc('Create project folders instead of using single project file.')
+			.addToggle((toggle) => toggle
+				.setValue(this.plugin.settings.useFolderStructure)
+				.onChange(async (value) => {
+					this.plugin.settings.useFolderStructure = value;
+					await this.plugin.saveSettings();
+					this.display();
+				})
+			);
+
 		new Setting(containerEl).setName('Areas folder')
 			.setDesc('Where to place your areas?')
 			.addText((text) => text
@@ -55,7 +67,7 @@ export class SettingTab extends PluginSettingTab {
 				)
 			);
 
-		new Setting(containerEl).setName('Enable area companion folder?')
+		new Setting(containerEl).setName('Enable area companion folder')
 			.setDesc('Folder name `_<name_of_area>` which contains directly related notes to this area.')
 			.addToggle((toggle) => toggle
 				.setValue(this.plugin.settings.useCompanionDir)

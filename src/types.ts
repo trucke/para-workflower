@@ -2,6 +2,7 @@ import { TFile } from "obsidian";
 
 export interface PluginSettings {
 	projectsPath: string;
+	useFolderStructure: boolean;
 	areasPath: string;
 	useCompanionDir: boolean;
 	resourcesPath: string;
