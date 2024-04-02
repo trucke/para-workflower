@@ -32,7 +32,7 @@ export class CreateProjectModal extends Modal {
 			}));
 
 		this.projectNameSetting.controlEl.addEventListener('keydown', (event) => {
-			if (event.key === 'Enter') { this.submit(); }
+			if (event.key === 'Enter') { event.preventDefault(); this.submit(); }
 		});
 
 		contentEl.createEl('h2', { text: 'In which area you want to progress?' });
@@ -44,7 +44,7 @@ export class CreateProjectModal extends Modal {
 			}));
 
 		this.areaNameSetting.controlEl.addEventListener('keydown', (event) => {
-			if (event.key === 'Enter') { this.submit(); }
+			if (event.key === 'Enter') { event.preventDefault(); this.submit(); }
 		});
 
 		this.submitControl = new Setting(contentEl)
