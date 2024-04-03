@@ -4,7 +4,6 @@ import { isPluginEnabled } from 'obsidian-dataview';
 import {
 	CreateProjectModal,
 	createProject,
-	completeProject
 } from 'src/para-project';
 import { DEFAULT_SETTINGS, SettingTab } from 'src/settings';
 import { initializeVault } from 'src/init';
@@ -18,7 +17,7 @@ import {
 } from 'src/types';
 import { CreateAreaModal, createArea } from 'src/para-area';
 import { CreateResourceModal, createResource } from 'src/para-resource';
-import { archive } from 'src/command-utils/archive';
+import { archive, completeProject } from 'src/command-utils/archive';
 import { restore } from 'src/command-utils/restore';
 import { RestoreParaItemModal } from 'src/modals/RestoreParaItemModal';
 
