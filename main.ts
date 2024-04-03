@@ -99,6 +99,8 @@ export default class ParaWorkflower extends Plugin {
 							console.error('[PARA Workflower] An error occurred during archiving:', error.message);
 							new Notice(`FAILED: ${error.message}`);
 						});
+				} else {
+					new Notice('There is nothing to archive');
 				}
 			},
 		});
@@ -110,11 +112,9 @@ export default class ParaWorkflower extends Plugin {
 				const file = this.app.workspace.getActiveFile();
 				if (file !== null && this.isArchived(file)) {
 					restore(this.app, this.settings, file)
-						.then(() => {
-							new Notice(`'${file.basename}' restored`);
-						})
+						.then(() => { })
 						.catch((error) => {
-							console.error('[PARA Workflower] An error occurred during restoring:', error.message);
+							console.log('[PARA Workflower] An error occurred during restoring:', error.message);
 							new Notice(`FAILED: ${error.message}`);
 						});
 				} else {

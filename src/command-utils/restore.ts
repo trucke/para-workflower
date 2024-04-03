@@ -1,12 +1,6 @@
-import { App, normalizePath, TFile, TFolder } from 'obsidian';
-import { PluginSettings } from 'src/types';
-
-// Define a map of tag values to item types
-const tagItemTypeMap: { [key: string]: string } = {
-	'project': 'project',
-	'resource': 'resource',
-	'area': 'area'
-};
+import { App, normalizePath, Notice, TFile, TFolder } from 'obsidian';
+import { ParaType, PluginSettings } from 'src/types';
+import { capitalize } from 'src/utils';
 
 export async function restore(app: App, settings: PluginSettings, file: TFile): Promise<void> {
 	try {
@@ -14,50 +8,59 @@ export async function restore(app: App, settings: PluginSettings, file: TFile): 
 			throw new Error('Cannot restore. Current item is not archived');
 		}
 
-		let itemType: string = 'undefined';
+		let itemType: ParaType | null = null;
 		await app.fileManager.processFrontMatter(file, (frontMatter) => {
 			frontMatter.tags = frontMatter.tags || [];
 			for (const tag of frontMatter.tags) {
-				if (tagItemTypeMap[tag]) {
-					itemType = tagItemTypeMap[tag];
+				if (Object.values(ParaType).includes(tag)) {
+					itemType = tag;
 					break;
 				}
 			}
 		});
 
-		restoreByType(app, settings, file, itemType);
+		await restoreByType(app, settings, file, itemType);
 	} catch (error) {
 		throw error;
 	}
 }
 
-export async function restoreByType(app: App, settings: PluginSettings, file: TFile, type: string): Promise<void> {
+export async function restoreByType(app: App, settings: PluginSettings, file: TFile, type: ParaType | null): Promise<void> {
 	try {
 		switch (type) {
-			case 'project':
-				restoreProject(app, settings.projectsPath, file);
+			case ParaType.Project:
+				restoreProject(app, settings, file);
 				break;
-			case 'resource':
+			case ParaType.Resource:
 				restoreResource(app, settings.resourcesPath, file);
 				break;
-			case 'area':
+			case ParaType.Area:
 				restoreArea(app, settings.areasPath, file);
 				break;
 			default:
-				throw new Error('Unknown or unsupported type');
+				throw new Error('File is not a known PARA type');
 		}
+
+		new Notice(`${capitalize(type)} '${file.basename}' restored`);
 	} catch (error) {
 		throw error;
 	}
 }
 
-async function restoreProject(app: App, projectsPath: string, file: TFile): Promise<void> {
-	let projectRestorePath = normalizePath([projectsPath, file.name].join('/'));
+async function restoreProject(app: App, settings: PluginSettings, file: TFile): Promise<void> {
+	const { projectsPath, archivePath } = settings;
+
 	await app.vault.process(file, (data) => {
 		return data.replace(/^Status::.*$/m, 'Status:: #pending');
-	})
+	});
 
-	return app.fileManager.renameFile(file, projectRestorePath);
+	if (file.parent!.path !== archivePath) {
+		const dest = normalizePath([projectsPath, file.parent!.name].join('/'));
+		return app.fileManager.renameFile(file.parent!, dest);
+	} else {
+		const dest = normalizePath([projectsPath, file.name].join('/'));
+		return app.fileManager.renameFile(file, dest);
+	}
 }
 
 async function restoreArea(app: App, areasPath: string, file: TFile): Promise<void> {

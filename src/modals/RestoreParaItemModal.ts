@@ -28,10 +28,8 @@ export class RestoreParaItemModal extends SuggestModal<ArchiveItem> {
 	}
 
 	onChooseSuggestion(item: ArchiveItem, _evt: MouseEvent | KeyboardEvent) {
-		restoreByType(this.app, this.plugin.settings, item.file, item.type?.toString() ?? 'undefined')
-			.then(() => {
-				new Notice(`'${item.file.basename}' restored`);
-			})
+		restoreByType(this.app, this.plugin.settings, item.file, item.type)
+			.then(() => { })
 			.catch((error) => {
 				console.error('[PARA Workflower] An error occurred during restoring:', error.message);
 				new Notice(`FAILED: ${error.message}`);
