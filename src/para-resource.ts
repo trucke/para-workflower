@@ -1,12 +1,17 @@
 import { Modal, App, Setting, Notice, TFile, normalizePath } from "obsidian";
 import type { PluginSettings, CreateResourceProps } from "src/types";
-import { containsInvalidCharacters } from "./utils";
+import { containsInvalidCharacters, error } from "./utils";
 
 export class CreateResourceModal extends Modal {
+	INVALID_INPUT_MSG: string = 'Name contains invalid characters: [ ] # ^ | \\ / : ?';
+
 	result: CreateResourceProps = {
 		name: null
 	};
 	onSubmit: (result: CreateResourceProps) => void;
+
+	resourceNameSetting: Setting;
+	submitControl: Setting;
 
 	constructor(app: App, onSubmit: (result: CreateResourceProps) => void) {
 		super(app);
@@ -17,32 +22,48 @@ export class CreateResourceModal extends Modal {
 		const { contentEl } = this;
 
 		contentEl.createEl('h2', { text: 'What\'s the resource?' });
-		const resourceNameSetting = new Setting(contentEl)
+		this.resourceNameSetting = new Setting(contentEl)
 			.setName("Name")
-			.addText((text) =>
-				text.onChange((value) => {
-					if (containsInvalidCharacters(value)) {
-						submit.setDisabled(true);
-						resourceNameSetting.descEl.show();
-					} else {
-						resourceNameSetting.descEl.hide();
-						submit.setDisabled(false);
-					}
-					this.result.name = value
-				}));
-		resourceNameSetting.setDesc('Name contains invalid characters: [ ] # ^ | \\ / : ?');
-		resourceNameSetting.descEl.setCssProps({ 'color': 'var(--background-modifier-error)' });
-		resourceNameSetting.descEl.hide();
+			.addText((text) => text.onChange((value) => {
+				this.isInputValid(this.resourceNameSetting, value)
+				this.result.name = value;
+			}));
 
-		const submit = new Setting(contentEl)
-			.addButton((btn) =>
-				btn
-					.setButtonText("Submit")
-					.setCta()
-					.onClick(() => {
-						this.close();
-						this.onSubmit(this.result);
-					}));
+		this.resourceNameSetting.controlEl.addEventListener('keydown', (event) => {
+			if (event.key === 'Enter') { event.preventDefault(); this.submit(); }
+		});
+
+		this.submitControl = new Setting(contentEl)
+			.addButton((btn) => btn
+				.setButtonText('Submit')
+				.setCta()
+				.onClick(() => { this.submit() }));
+	}
+
+	isInputValid(el: Setting, value: string): boolean {
+		if (containsInvalidCharacters(value)) {
+			el.setDesc(error(this.INVALID_INPUT_MSG));
+			el.descEl.show();
+			return false;
+		}
+
+		el.setDesc('');
+		return true;
+	}
+
+	submit() {
+		if (this.result.name === null || this.result.name.length < 1) {
+			new Notice(error('Resource name cannot be empty'));
+			return;
+		}
+
+		if (this.resourceNameSetting.descEl.isShown()) {
+			new Notice(error('Cannot create resource. Check your inputs'));
+			return;
+		}
+
+		this.close()
+		this.onSubmit(this.result);
 	}
 
 	onClose() {
