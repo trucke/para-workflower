@@ -1,18 +1,18 @@
 {
-	"name": "obsidian-sample-plugin",
-	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"name": "para-workflower",
+	"version": "0.1.5",
+	"description": "Helpful commands for starting and working in your vault with the PARA method.",
+	"private": true,
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc && node esbuild.config.mjs production",
 		"lint": "eslint .",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
+		"version": "node version-bump.mjs"
 	},
-	"keywords": [],
-	"author": "",
-	"license": "MIT",
+	"author": "KevTheDevX",
+	"license": "Unlicense",
 	"devDependencies": {
 		"@eslint/js": "^9.39.5",
 		"@types/node": "^26.6.6",
@@ -24,5 +24,9 @@
 		"obsidian": "1.14.4",
 		"typescript": "~6.0.3",
 		"typescript-eslint": "^8.72.1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/trucke/para-workflower.git"
 	}
 }
