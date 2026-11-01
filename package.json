@@ -15,10 +15,10 @@
 	"author": "KevTheDevX",
 	"license": "Unlicense",
 	"devDependencies": {
-		"@eslint/js": "^9.39.5",
+		"@eslint/js": "^10.0.1",
 		"@types/node": "^26.6.6",
 		"esbuild": "^0.28.2",
-		"eslint": "^9.39.5",
+		"eslint": "^10.13.0",
 		"eslint-plugin-obsidianmd": "^0.4.2",
 		"globals": "^17.14.0",
 		"jiti": "^2.7.0",
