@@ -1,5 +1,5 @@
 import { App, Notice, Plugin, TFile, TFolder } from 'obsidian';
-import { isPluginEnabled } from 'obsidian-dataview';
+import { warnIfDataviewDisabled } from 'src/dataview';
 
 import {
 	CreateProjectModal,
@@ -26,11 +26,6 @@ export default class ParaWorkflower extends Plugin {
 	settings: PluginSettings;
 
 	async onload() {
-		if (!isPluginEnabled(this.app)) {
-			new Notice('You need to install and enable dataview first!', 5000);
-			return;
-		}
-
 		await this.loadSettings();
 
 		this.addCommand({
@@ -39,6 +34,7 @@ export default class ParaWorkflower extends Plugin {
 			callback: () => {
 				initializeVault(this.app.vault, this.settings).then(() => {
 					new Notice('Vault initialized', 5000);
+					warnIfDataviewDisabled(this.app);
 				});
 			}
 		})
@@ -67,6 +63,7 @@ export default class ParaWorkflower extends Plugin {
 				new CreateAreaModal(this.app, (result: CreateAreaProps) => {
 					createArea(this.app, this.settings, result).then(() => {
 						new Notice(`Area '${result.name}' created!`);
+						warnIfDataviewDisabled(this.app);
 					}).catch(() => { });
 				}).open();
 			},
