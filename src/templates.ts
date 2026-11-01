@@ -17,6 +17,7 @@ tags:
  - project
 completed: false
 deadline: 
+priority: 
 ---
 Area:: [[]]
 Status:: #draft 
@@ -46,6 +47,10 @@ ___
 
 `;
 
+// A project belongs to an area through its area tag or its `Area::` field.
+const PROJECTS_OF_THIS_AREA = `where econtains(file.etags, "#project")
+  and (contains(file.etags, lower(this.file.name)) or contains(lower(string(area)), lower(this.file.name)))`;
+
 // The Dataview queries point at the folders configured when the template is generated.
 function areaTemplate({ projectsPath, areasPath, resourcesPath, archivePath }: PluginSettings): string {
 	return `---
@@ -71,9 +76,10 @@ where contains(file.path, join(list("_", lower(this.file.name)), ""))
 ## Active Projects
 
 \`\`\`dataview
-table status as Status, deadline as Deadline
+table status as Status, priority as Priority, deadline as Deadline
 from "${projectsPath}"
-where econtains(file.etags, "#project") and contains(file.etags, lower(this.file.name))
+${PROJECTS_OF_THIS_AREA}
+sort default(priority, 1000) asc, file.name asc
 \`\`\`
 
 ## Archived Projects
@@ -81,7 +87,7 @@ where econtains(file.etags, "#project") and contains(file.etags, lower(this.file
 \`\`\`dataview
 table status as Status
 from "${archivePath}"
-where econtains(file.etags, "#project") and contains(file.etags, lower(this.file.name))
+${PROJECTS_OF_THIS_AREA}
 sort status desc, file.name
 \`\`\`
 

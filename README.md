@@ -71,6 +71,8 @@ Create a folder called `para-workflower` inside `.obsidian/plugins` and place th
 | Archive folder | `4-Archive` | Where archived items are moved. |
 | Project template, Area template, Resource template | `Templates/<Type> Template.md` | The notes used as templates. If a template note is missing, the built-in template is used. |
 
+Area notes list the projects that have the area's tag or link to the area in their `Area::` line. Projects are sorted by their `priority` property, lowest number first. Projects without a priority come last.
+
 The area template contains Dataview queries with your folder names at the time the template was created. If you rename folders later, update the queries in your area template and in existing area notes.
 
 ## Tips
