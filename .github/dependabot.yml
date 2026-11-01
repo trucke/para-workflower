@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7 # skip releases younger than a week (supply-chain safety)
+    groups:
+      dev-dependencies:
+        dependency-type: development
+    ignore:
+      # typescript-eslint supports TypeScript < 6.1 only. Revisit with TypeScript 7.1.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # Pinned to match minAppVersion in manifest.json. Raise both together.
+      - dependency-name: obsidian
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
