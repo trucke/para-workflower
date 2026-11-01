@@ -12,10 +12,10 @@ export type PluginSettings = {
 	useCompanionDir: boolean;
 	resourcesPath: string;
 	archivePath: string;
-	templatesFolder: string;
-	projectTemplateName: string;
-	areaTemplateName: string;
-	resourceTemplateName: string;
+	/** Template note paths, including `.md`. */
+	projectTemplate: string;
+	areaTemplate: string;
+	resourceTemplate: string;
 };
 
 export interface NewItem {

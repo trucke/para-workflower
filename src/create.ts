@@ -2,6 +2,7 @@ import type { App, TFile } from 'obsidian';
 
 import { getParaType, toStringList } from './para';
 import { isInFolder, joinPath } from './paths';
+import { builtinTemplate } from './templates';
 import type { NewItem, ParaType, PluginSettings } from './types';
 import { INVALID_NAME_MESSAGE, UserError, capitalize, containsInvalidCharacters } from './utils';
 
@@ -22,11 +23,9 @@ export async function createItem(app: App, settings: PluginSettings, type: ParaT
 		return `${capitalize(type)} '${existing.basename}' already exists`;
 	}
 
-	const templatePath = joinPath(settings.templatesFolder, `${templateName(settings, type)}.md`);
+	const templatePath = templateFile(settings, type);
 	const template = app.vault.getFileByPath(templatePath);
-	if (!template) {
-		throw new UserError(`The template '${templatePath}' does not exist`);
-	}
+	const content = template ? await app.vault.cachedRead(template) : builtinTemplate(type, settings);
 
 	const ownFolder = type === 'project' && settings.useFolderStructure;
 	const itemFolder = ownFolder ? joinPath(folder, name) : folder;
@@ -40,7 +39,7 @@ export async function createItem(app: App, settings: PluginSettings, type: ParaT
 	}
 
 	await ensureFolder(app, itemFolder);
-	const file = await app.vault.create(path, await app.vault.cachedRead(template));
+	const file = await app.vault.create(path, content);
 
 	if (type === 'area' && settings.useCompanionDir) {
 		await ensureFolder(app, joinPath(folder, `_${name.toLowerCase()}`));
@@ -53,7 +52,8 @@ export async function createItem(app: App, settings: PluginSettings, type: ParaT
 	}
 
 	await app.workspace.getLeaf().openFile(file);
-	return `${capitalize(type)} '${name}' created`;
+	const fallbackNote = template ? '' : ` with the built-in template ('${templatePath}' not found)`;
+	return `${capitalize(type)} '${name}' created${fallbackNote}`;
 }
 
 /** Finds an active or archived item of the same type and name, ignoring case. */
@@ -79,10 +79,10 @@ export function rootFolder(settings: PluginSettings, type: ParaType): string {
 	}
 }
 
-function templateName(settings: PluginSettings, type: ParaType): string {
+export function templateFile(settings: PluginSettings, type: ParaType): string {
 	switch (type) {
-		case 'project': return settings.projectTemplateName;
-		case 'area': return settings.areaTemplateName;
-		case 'resource': return settings.resourceTemplateName;
+		case 'project': return settings.projectTemplate;
+		case 'area': return settings.areaTemplate;
+		case 'resource': return settings.resourceTemplate;
 	}
 }

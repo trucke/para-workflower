@@ -1,31 +1,8 @@
 import { PluginSettingTab, normalizePath } from 'obsidian';
-import type { SettingDefinitionItem } from 'obsidian';
+import type { SettingDefinitionItem, SettingGroupItem } from 'obsidian';
 
+import { DEFAULT_SETTINGS } from './settings-data';
 import type { PluginSettings } from './types';
-
-export const DEFAULT_SETTINGS: PluginSettings = {
-	inboxPath: '0-Inbox',
-	projectsPath: '1-Projects',
-	useFolderStructure: false,
-	areasPath: '2-Areas',
-	useCompanionDir: true,
-	resourcesPath: '3-Resources',
-	archivePath: '4-Archive',
-
-	templatesFolder: 'Templates',
-	projectTemplateName: 'Project Template',
-	areaTemplateName: 'Area Template',
-	resourceTemplateName: 'Resource Template',
-};
-
-/** Builds settings from stored plugin data, falling back to defaults for missing or mistyped values. */
-export function parseSettings(data: unknown): PluginSettings {
-	const stored: Record<string, unknown> = typeof data === 'object' && data !== null ? { ...data } : {};
-	const defaults: Record<string, unknown> = DEFAULT_SETTINGS;
-	const valid = Object.entries(stored).filter(([key, value]) =>
-		key in defaults && typeof value === typeof defaults[key]);
-	return { ...DEFAULT_SETTINGS, ...Object.fromEntries(valid) };
-}
 
 export class SettingTab extends PluginSettingTab {
 	override getSettingDefinitions(): SettingDefinitionItem<keyof PluginSettings>[] {
@@ -65,6 +42,16 @@ export class SettingTab extends PluginSettingTab {
 				desc: 'Where to place archived projects, areas and resources.',
 				control: { type: 'folder', key: 'archivePath', placeholder: DEFAULT_SETTINGS.archivePath },
 			},
+			{
+				type: 'group',
+				heading: 'Templates',
+				items: [
+					templateSetting('Project template', 'projectTemplate'),
+					templateSetting('Area template', 'areaTemplate',
+						'Its Dataview queries use the folder names from when the template was created. Update them if you rename folders.'),
+					templateSetting('Resource template', 'resourceTemplate'),
+				],
+			},
 		];
 	}
 
@@ -76,4 +63,16 @@ export class SettingTab extends PluginSettingTab {
 			await super.setControlValue(key, value);
 		}
 	}
+}
+
+function templateSetting(
+	name: string,
+	key: 'projectTemplate' | 'areaTemplate' | 'resourceTemplate',
+	extraDesc = '',
+): SettingGroupItem<keyof PluginSettings> {
+	return {
+		name,
+		desc: `"Initialize vault" creates this note. If it is missing, the built-in template is used. ${extraDesc}`.trim(),
+		control: { type: 'file', key, placeholder: DEFAULT_SETTINGS[key], filter: (file) => file.extension === 'md' },
+	};
 }

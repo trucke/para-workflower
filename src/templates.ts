@@ -1,5 +1,18 @@
+import type { ParaType, PluginSettings } from './types';
 
-export const PROJECT_TEMPLATE = `---
+/**
+ * Built-in templates. "Initialize vault" writes them to the configured template
+ * files, and they are used directly when a configured template file is missing.
+ */
+export function builtinTemplate(type: ParaType, settings: PluginSettings): string {
+	switch (type) {
+		case 'project': return PROJECT_TEMPLATE;
+		case 'area': return areaTemplate(settings);
+		case 'resource': return RESOURCE_TEMPLATE;
+	}
+}
+
+const PROJECT_TEMPLATE = `---
 tags:
  - project
 completed: false
@@ -33,7 +46,9 @@ ___
 
 `;
 
-export const AREA_TEMPLATE = `---
+// The Dataview queries point at the folders configured when the template is generated.
+function areaTemplate({ projectsPath, areasPath, resourcesPath, archivePath }: PluginSettings): string {
+	return `---
 tags:
   - area
 ---
@@ -48,7 +63,7 @@ What is about this area?
 
 \`\`\`dataview
 table 
-from "2-Areas"
+from "${areasPath}"
 where contains(file.path, join(list("_", lower(this.file.name)), ""))
 \`\`\`
 
@@ -57,16 +72,16 @@ where contains(file.path, join(list("_", lower(this.file.name)), ""))
 
 \`\`\`dataview
 table status as Status, deadline as Deadline
-from "1-Projects"
-where contains(file.etags, lower(this.file.name))
+from "${projectsPath}"
+where econtains(file.etags, "#project") and contains(file.etags, lower(this.file.name))
 \`\`\`
 
 ## Archived Projects
 
 \`\`\`dataview
 table status as Status
-from "4-Archive"
-where contains(file.etags, lower(this.file.name))
+from "${archivePath}"
+where econtains(file.etags, "#project") and contains(file.etags, lower(this.file.name))
 sort status desc, file.name
 \`\`\`
 
@@ -74,16 +89,16 @@ sort status desc, file.name
 
 \`\`\`dataview
 table
-from "3-Resources"
+from "${resourcesPath}"
 where contains(file.etags, lower(this.file.name))
 sort file.name
 \`\`\`
 
 `;
+}
 
-export const RESOURCE_TEMPLATE = `---
+const RESOURCE_TEMPLATE = `---
 tags:
  - resource
 ---
 `;
-

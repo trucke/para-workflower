@@ -8,7 +8,8 @@ import { initializeVault } from './init';
 import { CreateItemModal } from './modals/CreateItemModal';
 import { RestoreItemModal } from './modals/RestoreItemModal';
 import { isInFolder } from './paths';
-import { SettingTab, parseSettings } from './settings';
+import { SettingTab } from './settings';
+import { parseSettings } from './settings-data';
 import type { ParaType, PluginSettings } from './types';
 import { UserError } from './utils';
 
@@ -22,7 +23,7 @@ export default class ParaWorkflower extends Plugin {
 			id: 'init-vault',
 			name: 'Initialize vault',
 			callback: () => void this.run(async () => {
-				await initializeVault(this.app.vault, this.settings);
+				await initializeVault(this.app, this.settings);
 				warnIfDataviewDisabled(this.app);
 				return 'Vault initialized';
 			}),
