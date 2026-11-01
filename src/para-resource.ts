@@ -1,5 +1,5 @@
 import { Modal, App, Setting, Notice, TFile, normalizePath } from "obsidian";
-import type { PluginSettings, CreateResourceProps } from "src/types";
+import type { PluginSettings, CreateResourceProps } from "./types";
 import { containsInvalidCharacters, error } from "./utils";
 
 export class CreateResourceModal extends Modal {
@@ -10,8 +10,8 @@ export class CreateResourceModal extends Modal {
 	};
 	onSubmit: (result: CreateResourceProps) => void;
 
-	resourceNameSetting: Setting;
-	submitControl: Setting;
+	resourceNameSetting!: Setting;
+	submitControl!: Setting;
 
 	constructor(app: App, onSubmit: (result: CreateResourceProps) => void) {
 		super(app);

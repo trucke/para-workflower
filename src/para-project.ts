@@ -1,6 +1,6 @@
 import { Modal, App, Setting, Notice, TFile, normalizePath, TFolder } from 'obsidian';
-import { containsInvalidCharacters, error } from 'src/utils';
-import { PluginSettings, CreateProjectProps, ParaType } from 'src/types';
+import { containsInvalidCharacters, error } from './utils';
+import { type PluginSettings, type CreateProjectProps, ParaType } from './types';
 
 export class CreateProjectModal extends Modal {
 	INVALID_INPUT_MSG: string = 'Name contains invalid characters: [ ] # ^ | \\ / : ?';
@@ -11,9 +11,9 @@ export class CreateProjectModal extends Modal {
 	};
 	onSubmit: (result: CreateProjectProps) => void;
 
-	projectNameSetting: Setting;
-	areaNameSetting: Setting;
-	submitControl: Setting;
+	projectNameSetting!: Setting;
+	areaNameSetting!: Setting;
+	submitControl!: Setting;
 
 	constructor(app: App, onSubmit: (result: CreateProjectProps) => void) {
 		super(app);

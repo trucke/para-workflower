@@ -1,7 +1,7 @@
-import ParaWorkflower from "main";
+import ParaWorkflower from "../main";
 import { App, Notice, SuggestModal } from "obsidian";
-import { restoreByType } from "src/command-utils/restore";
-import { ArchiveItem } from "src/types";
+import { restoreByType } from "../command-utils/restore";
+import type { ArchiveItem } from "../types";
 
 export class RestoreParaItemModal extends SuggestModal<ArchiveItem> {
 	plugin: ParaWorkflower;

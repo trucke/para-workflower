@@ -1,29 +1,29 @@
 import { App, Notice, Plugin, TFile, TFolder } from 'obsidian';
-import { warnIfDataviewDisabled } from 'src/dataview';
+import { warnIfDataviewDisabled } from './dataview';
 
 import {
 	CreateProjectModal,
 	createProject,
-} from 'src/para-project';
-import { DEFAULT_SETTINGS, SettingTab } from 'src/settings';
-import { initializeVault } from 'src/init';
+} from './para-project';
+import { DEFAULT_SETTINGS, SettingTab } from './settings';
+import { initializeVault } from './init';
 import {
-	CreateProjectProps,
-	CreateAreaProps,
-	CreateResourceProps,
-	PluginSettings,
-	ArchiveItem,
+	type CreateProjectProps,
+	type CreateAreaProps,
+	type CreateResourceProps,
+	type PluginSettings,
+	type ArchiveItem,
 	ParaType
-} from 'src/types';
-import { CreateAreaModal, createArea } from 'src/para-area';
-import { CreateResourceModal, createResource } from 'src/para-resource';
-import { archive, completeProject } from 'src/command-utils/archive';
-import { restore } from 'src/command-utils/restore';
-import { RestoreParaItemModal } from 'src/modals/RestoreParaItemModal';
+} from './types';
+import { CreateAreaModal, createArea } from './para-area';
+import { CreateResourceModal, createResource } from './para-resource';
+import { archive, completeProject } from './command-utils/archive';
+import { restore } from './command-utils/restore';
+import { RestoreParaItemModal } from './modals/RestoreParaItemModal';
 
 
 export default class ParaWorkflower extends Plugin {
-	settings: PluginSettings;
+	settings!: PluginSettings;
 
 	async onload() {
 		await this.loadSettings();

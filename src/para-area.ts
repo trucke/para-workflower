@@ -1,5 +1,5 @@
 import { Modal, App, Setting, Notice, TFile, normalizePath } from "obsidian";
-import type { PluginSettings, CreateAreaProps } from "src/types";
+import type { PluginSettings, CreateAreaProps } from "./types";
 import { containsInvalidCharacters } from "./utils";
 
 export class CreateAreaModal extends Modal {

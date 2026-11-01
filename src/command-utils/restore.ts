@@ -1,6 +1,6 @@
 import { App, normalizePath, Notice, TFile, TFolder } from 'obsidian';
-import { ParaType, PluginSettings } from 'src/types';
-import { capitalize } from 'src/utils';
+import { ParaType, type PluginSettings } from '../types';
+import { capitalize } from '../utils';
 
 export async function restore(app: App, settings: PluginSettings, file: TFile): Promise<void> {
 	try {

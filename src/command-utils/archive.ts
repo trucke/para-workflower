@@ -1,5 +1,5 @@
 import { App, normalizePath, Notice, TAbstractFile, TFile, TFolder } from "obsidian";
-import { ParaType, PluginSettings } from "src/types";
+import { ParaType, type PluginSettings } from "../types";
 
 export async function archive(app: App, settings: PluginSettings, file: TAbstractFile): Promise<void> {
 	try {
@@ -99,7 +99,7 @@ async function archiveProject(app: App, setting: PluginSettings, file: TFile): P
 async function archiveArea(app: App, archivePath: string, file: TFile): Promise<void> {
 	const destBasePath = normalizePath([archivePath, file.basename].join("/"));
 	const companionFolderPath = [
-		this.app.vault.getRoot().name,
+		app.vault.getRoot().name,
 		file.path.substring(0, file.path.lastIndexOf('/')),
 		`_${file.basename.toLowerCase()}`
 	].join("/");

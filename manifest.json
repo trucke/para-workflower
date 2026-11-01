@@ -2,7 +2,7 @@
 	"id": "para-workflower",
 	"name": "PARA Workflower",
 	"version": "0.1.5",
-	"minAppVersion": "1.5.8",
+	"minAppVersion": "1.14.4",
 	"description": "Helpful commands for starting and working in your vault with the PARA method.",
 	"author": "KevTheDevX",
 	"authorUrl": "https://github.com/trucke",

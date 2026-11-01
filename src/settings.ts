@@ -1,7 +1,7 @@
 import { PluginSettingTab, Setting, debounce, normalizePath } from 'obsidian';
 import type { App } from 'obsidian';
 
-import type ParaWorkflower from 'main';
+import type ParaWorkflower from './main';
 import type { PluginSettings } from './types';
 
 export const DEFAULT_SETTINGS: PluginSettings = {
