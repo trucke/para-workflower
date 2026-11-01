@@ -7,37 +7,6 @@ This plugin offers you a handful of very useful commands to
 - Easily archive your PARA items (Project, Area, Resource) using the plugin commands
 - Restore projects, areas and resources directly or via the plugin's handy fuzzy search function
 
-## Changelog v0.1.5
-
-> [!warning] 
-> THIS VERSION MAY CONTAINS BREAKING CHANGES
-
-- added input validation in modal when creating a project, area or resource   
-
-- added command `Move to archive`  
-This command will move the currently open project / area / resource to the archive.  
-If the file is an `area`, the companion folder (if exists) is also moved. The area note and companion folder are then placed within a subfolder named after the area in your archive folder.  
-If the file is a `project` and within a project folder the whole project folder will be moved to the archive  
-	
-- added command `Restore from archive`  
-Restores the currently open PARA item or opens a modal in which you can search for an archived project, area or resource that you want to restore.  
-This change is for a more convenient use of the plugin and is now the only command for restoring archived elements.  
-If you call the command without a file being open or not archived, the search modal is opened.  
-If you call the command with a currently open and archived PARA item, this will be restored immediately.  
-
-- command `Create new project` now checks whether a project with the same name (case insensitive) already exists in the projects or archive folder
-
-- removed command `Archive current project`
-- removed command `Restore open project from archive`
-- removed command `Restore project from archive`   
-
-- add support for project folder structure  
-You can enable folder structure for projects under the plugin settings `Use folder structure for projects`.  
-All corresponding commands can now handle both flat and folder structures for projects.  
-
-> All projects created w/o a project folder (flat) will still be handled as flat projects (single file). This might be changed in the future.
-
-
 To see all changes to the plugin, go to https://github.com/trucke/para-workflower/releases.
 
 ---
@@ -48,9 +17,10 @@ A full article on the PARA method and its benefits can be found on this [blog po
 
 ## Installation
 
-> [Dataview](https://github.com/blacksmithgu/obsidian-dataview) is required, please install it first.  
+Requires Obsidian 1.14.4 or later.
 
-> Enable core plugin `Templates` and configure the templates folder to `Templates`
+> [!tip]
+> Install [Dataview](https://github.com/blacksmithgu/obsidian-dataview) as well. Area notes use it to list their projects, archived projects and resources. All commands work without it.
 
 #### Recommended
 
@@ -59,25 +29,49 @@ A full article on the PARA method and its benefits can be found on this [blog po
 1. Search for "PARA Workflower" in Obsidian's community plugins browser
 2. Enable the plugin in your Obsidian settings (find "PARA Workflower" under "Community plugins").
 3. Check the settings (You can customize the directory of your PARA notes and more)
+4. Run the command `Initialize vault` to create the folders and templates
 
 #### Manual
 
-Go to the [releases](https://github.com/trucke/para-workflower/releases) and download the latest `main.js` and `manifest.json` files.
-Create a folder called `para-workflower` inside `.obsidian/plugins` and place both files in it.
+Go to the [releases](https://github.com/trucke/para-workflower/releases) and download the latest `main.js`, `manifest.json` and `styles.css` files.
+Create a folder called `para-workflower` inside `.obsidian/plugins` and place the files in it.
 
 
 ## Commands
 > Open command palette (default): `CTRL+p` or `CMD+p`
 
-| Command                | Description                                                                                                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Initialize vault`     | Initialize your vault by creating PARA folder structure and generate Templates for project, area, resource                                      |
-| `Create new project`   | Opens a modal to speed up creating a new Project, puts the new project under your Projects folder and sets the status of the project to `draft` |
-| `Create new area`      | Opens a modal to speed up creating a new Area, puts the new area under your Areas folder and also creates an companion folder for the new area  |
-| `Create new resource`  | Opens a modal to speed up creating a new Resource, puts the new resource under your Resources folder                                            |
-| `Move to archive`      | Moves the current PARA item (Project, Area, Resource) to your archive. If current item is a project the status will be changed to `aborted`     |
-| `Restore from archive` | Restores the currently opened and archived PARA item or opens a search modal                                                                    |
-| `Complete project`     | Set current open and active project as completed, set `completed` to `true`, set status to `done` and move to archive                           |
+| Command                | Description |
+| ---------------------- | ----------- |
+| `Initialize vault`     | Creates the inbox, projects, areas, resources and archive folders and the three templates. Existing folders and notes are left untouched, so you can run it again at any time. |
+| `Create new project`   | Opens a dialog to create a new project in your projects folder with the status `draft`. If you enter an area, the project is tagged with it and linked to it. |
+| `Create new area`      | Opens a dialog to create a new area in your areas folder, plus a companion folder `_<area>` if enabled. |
+| `Create new resource`  | Opens a dialog to create a new resource in your resources folder. |
+| `Move to archive`      | Moves the open project, area or resource to your archive. Projects get the status `aborted`. |
+| `Restore from archive` | Restores the open archived item, or opens a search dialog to pick one. Projects get the status `pending`. |
+| `Complete project`     | Marks the open project as completed (`completed: true`, status `done`) and moves it to your archive. |
+
+### How items are handled
+
+- A note counts as a project, area or resource when its `tags` property contains `project`, `area` or `resource` and it is inside the matching folder.
+- If you create a project, area or resource whose name already exists (active or archived, ignoring upper and lower case), the existing note opens instead of a new one being created.
+- A project with its own folder (`1-Projects/<Name>/<Name>.md`) moves together with that folder. Any other project note moves alone, so other notes next to it stay where they are.
+- An area moves together with its companion folder `_<area>`. In the archive, both are placed in a folder named after the area. When the area is restored and that folder is empty, the folder is moved to the trash.
+- Before moving anything, the plugin checks that nothing with the same name exists at the destination. If something does, nothing is changed.
+
+## Settings
+
+| Setting | Default | Description |
+| ------- | ------- | ----------- |
+| Inbox folder | `0-Inbox` | Created by `Initialize vault`. Leave empty for no inbox. To collect new notes there, set it as the default location for new notes under **Settings → Files and links**. |
+| Projects folder | `1-Projects` | Where new projects are created. |
+| Use folder structure for projects | off | Creates a folder for each new project (`1-Projects/<Name>/<Name>.md`). |
+| Areas folder | `2-Areas` | Where new areas are created. |
+| Create area companion folders | on | Creates a folder `_<area>` next to each new area. |
+| Resources folder | `3-Resources` | Where new resources are created. |
+| Archive folder | `4-Archive` | Where archived items are moved. |
+| Project template, Area template, Resource template | `Templates/<Type> Template.md` | The notes used as templates. If a template note is missing, the built-in template is used. |
+
+The area template contains Dataview queries with your folder names at the time the template was created. If you rename folders later, update the queries in your area template and in existing area notes.
 
 ## Tips
 
@@ -108,10 +102,8 @@ Big shout out, to the following amazing projects i relied on:
 
 ## Further Improvements & Support
 
-Feel free to contribute.
-
 Contributors are very welcome and I appreciate every input.
 
 You can create an issue to report a bug, suggest an improvement for this plugin, ask a question, etc.
 
-You can make a pull request to contribute to this plugin development.
+To set up a development environment and open a pull request, see [CONTRIBUTING.md](CONTRIBUTING.md).
