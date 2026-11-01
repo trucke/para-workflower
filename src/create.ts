@@ -2,7 +2,7 @@ import type { App, TFile } from 'obsidian';
 
 import { getParaType, toStringList } from './para';
 import { isInFolder, joinPath } from './paths';
-import { builtinTemplate } from './templates';
+import { builtinTemplate, projectsOverview } from './templates';
 import type { NewItem, ParaType, PluginSettings } from './types';
 import { INVALID_NAME_MESSAGE, UserError, capitalize, containsInvalidCharacters } from './utils';
 
@@ -85,4 +85,20 @@ export function templateFile(settings: PluginSettings, type: ParaType): string {
 		case 'area': return settings.areaTemplate;
 		case 'resource': return settings.resourceTemplate;
 	}
+}
+
+/** Opens the projects overview note, creating it first if needed. */
+export async function openProjectsOverview(app: App, settings: PluginSettings): Promise<string> {
+	const path = joinPath(settings.projectsPath, 'Projects overview.md');
+	const existing = app.vault.getFileByPath(path);
+	if (existing) {
+		await app.workspace.getLeaf().openFile(existing);
+		return 'Projects overview opened';
+	}
+	if (await app.vault.adapter.exists(path)) {
+		throw new UserError(`'${path}' already exists`);
+	}
+	await ensureFolder(app, settings.projectsPath);
+	await app.workspace.getLeaf().openFile(await app.vault.create(path, projectsOverview(settings)));
+	return 'Projects overview created';
 }

@@ -2,7 +2,7 @@ import { Notice, Plugin } from 'obsidian';
 import type { TFile } from 'obsidian';
 
 import { archiveItem, completeProject, getArchivedItems, restoreItem } from './archive';
-import { createItem } from './create';
+import { createItem, openProjectsOverview } from './create';
 import { warnIfDataviewDisabled } from './dataview';
 import { initializeVault } from './init';
 import { CreateItemModal } from './modals/CreateItemModal';
@@ -32,6 +32,16 @@ export default class ParaWorkflower extends Plugin {
 		this.addCreateCommand('project');
 		this.addCreateCommand('area');
 		this.addCreateCommand('resource');
+
+		this.addCommand({
+			id: 'create-projects-overview',
+			name: 'Create projects overview',
+			callback: () => void this.run(async () => {
+				const message = await openProjectsOverview(this.app, this.settings);
+				warnIfDataviewDisabled(this.app);
+				return message;
+			}),
+		});
 
 		this.addCommand({
 			id: 'move-to-archive',

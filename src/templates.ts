@@ -103,6 +103,19 @@ sort file.name
 `;
 }
 
+/** All active projects in one table, for the "Create projects overview" command. */
+export function projectsOverview({ projectsPath }: PluginSettings): string {
+	return `# Projects overview
+
+\`\`\`dataview
+table status as Status, area as Area, priority as Priority, deadline as Deadline, file.mtime as Updated
+from "${projectsPath}"
+where econtains(file.etags, "#project")
+sort status asc, default(priority, 1000) asc, file.name asc
+\`\`\`
+`;
+}
+
 const RESOURCE_TEMPLATE = `---
 tags:
  - resource

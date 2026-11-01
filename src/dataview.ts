@@ -9,9 +9,9 @@ declare module 'obsidian' {
 	}
 }
 
-/** Area notes render their lists with Dataview. Everything else works without it. */
+/** Area notes and the projects overview render their lists with Dataview. Everything else works without it. */
 export function warnIfDataviewDisabled(app: App): void {
 	if (!app.plugins.enabledPlugins.has('dataview')) {
-		new Notice('Area notes use Dataview to list their projects and resources. Install and enable Dataview to see them.', 8000);
+		new Notice('Area notes and the projects overview use Dataview to show their lists. Install and enable Dataview to see them.', 8000);
 	}
 }

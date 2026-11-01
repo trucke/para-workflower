@@ -46,6 +46,7 @@ Create a folder called `para-workflower` inside `.obsidian/plugins` and place th
 | `Create new project`   | Opens a dialog to create a new project in your projects folder with the status `draft`. If you enter an area, the project is tagged with it and linked to it. |
 | `Create new area`      | Opens a dialog to create a new area in your areas folder, plus a companion folder `_<area>` if enabled. |
 | `Create new resource`  | Opens a dialog to create a new resource in your resources folder. |
+| `Create projects overview` | Creates the note `Projects overview` in your projects folder and opens it. It shows all active projects with status, area, priority, deadline and last change. If the note exists, it just opens. Needs Dataview. |
 | `Move to archive`      | Moves the open project, area or resource to your archive. Projects get the status `aborted`. |
 | `Restore from archive` | Restores the open archived item, or opens a search dialog to pick one. Projects get the status `pending`. |
 | `Complete project`     | Marks the open project as completed (`completed: true`, status `done`) and moves it to your archive. |
