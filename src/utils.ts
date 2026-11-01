@@ -1,20 +1,12 @@
-
-export function containsInvalidCharacters(text: string): Boolean {
-	if (text.startsWith('.')) {
-		return true;
-	}
-	const pattern: RegExp = /[\[\]#^|\\\/:?]/;
-	return pattern.test(text);
+/** An expected failure whose message is meant for the user, not the console. */
+export class UserError extends Error {
+	override name = 'UserError';
 }
 
+export const INVALID_NAME_MESSAGE = 'Name contains invalid characters: [ ] # ^ | \\ / : ?';
 
-export function error(msg: string): DocumentFragment {
-	let errorMsg = document.createDocumentFragment();
-	const div = document.createElement('div');
-	div.textContent = msg;
-	div.setCssProps({ 'color': 'var(--background-modifier-error)' });
-	errorMsg.appendChild(div);
-	return errorMsg;
+export function containsInvalidCharacters(text: string): boolean {
+	return text.startsWith('.') || /[[\]#^|\\/:?]/.test(text);
 }
 
 export function capitalize(text: string): string {

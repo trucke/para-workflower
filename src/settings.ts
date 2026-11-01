@@ -1,7 +1,6 @@
-import { PluginSettingTab, Setting, debounce, normalizePath } from 'obsidian';
-import type { App } from 'obsidian';
+import { PluginSettingTab, normalizePath } from 'obsidian';
+import type { SettingDefinitionItem } from 'obsidian';
 
-import type ParaWorkflower from './main';
 import type { PluginSettings } from './types';
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -18,90 +17,52 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	resourceTemplateName: 'Resource Template',
 };
 
-export class SettingTab extends PluginSettingTab {
-	plugin: ParaWorkflower;
+/** Builds settings from stored plugin data, falling back to defaults for missing or mistyped values. */
+export function parseSettings(data: unknown): PluginSettings {
+	const stored: Record<string, unknown> = typeof data === 'object' && data !== null ? { ...data } : {};
+	const defaults: Record<string, unknown> = DEFAULT_SETTINGS;
+	const valid = Object.entries(stored).filter(([key, value]) =>
+		key in defaults && typeof value === typeof defaults[key]);
+	return { ...DEFAULT_SETTINGS, ...Object.fromEntries(valid) };
+}
 
-	constructor(app: App, plugin: ParaWorkflower) {
-		super(app, plugin);
-		this.plugin = plugin;
+export class SettingTab extends PluginSettingTab {
+	override getSettingDefinitions(): SettingDefinitionItem<keyof PluginSettings>[] {
+		return [
+			{
+				name: 'Projects folder',
+				desc: 'Where to place your projects.',
+				control: { type: 'folder', key: 'projectsPath', placeholder: DEFAULT_SETTINGS.projectsPath },
+			},
+			{
+				name: 'Use folder structure for projects',
+				desc: 'Create a folder for each new project instead of a single note.',
+				control: { type: 'toggle', key: 'useFolderStructure' },
+			},
+			{
+				name: 'Areas folder',
+				desc: 'Where to place your areas.',
+				control: { type: 'folder', key: 'areasPath', placeholder: DEFAULT_SETTINGS.areasPath },
+			},
+			{
+				name: 'Create area companion folders',
+				desc: 'Create a folder named `_<area>` next to each new area for notes that belong to it.',
+				control: { type: 'toggle', key: 'useCompanionDir' },
+			},
+			{
+				name: 'Resources folder',
+				desc: 'Where to place your resources.',
+				control: { type: 'folder', key: 'resourcesPath', placeholder: DEFAULT_SETTINGS.resourcesPath },
+			},
+			{
+				name: 'Archive folder',
+				desc: 'Where to place archived projects, areas and resources.',
+				control: { type: 'folder', key: 'archivePath', placeholder: DEFAULT_SETTINGS.archivePath },
+			},
+		];
 	}
 
-	display(): void {
-		const { containerEl } = this;
-		containerEl.empty();
-
-		new Setting(containerEl).setName('Projects folder')
-			.setDesc('Where to place your projects?')
-			.addText((text) => text
-				.setPlaceholder(DEFAULT_SETTINGS.projectsPath)
-				.setValue(this.plugin.settings.projectsPath)
-				.onChange(
-					debounce(async (value) => {
-						this.plugin.settings.projectsPath = normalizePath(value);
-						await this.plugin.saveSettings();
-					}, 500)
-				)
-			);
-
-		new Setting(containerEl).setName('User folder structure for projects')
-			.setDesc('Create project folders instead of using single project file.')
-			.addToggle((toggle) => toggle
-				.setValue(this.plugin.settings.useFolderStructure)
-				.onChange(async (value) => {
-					this.plugin.settings.useFolderStructure = value;
-					await this.plugin.saveSettings();
-					this.display();
-				})
-			);
-
-		new Setting(containerEl).setName('Areas folder')
-			.setDesc('Where to place your areas?')
-			.addText((text) => text
-				.setPlaceholder(DEFAULT_SETTINGS.areasPath)
-				.setValue(this.plugin.settings.areasPath)
-				.onChange(
-					debounce(async (value) => {
-						this.plugin.settings.areasPath = normalizePath(value);
-						await this.plugin.saveSettings();
-					}, 500)
-				)
-			);
-
-		new Setting(containerEl).setName('Enable area companion folder')
-			.setDesc('Folder name `_<name_of_area>` which contains directly related notes to this area.')
-			.addToggle((toggle) => toggle
-				.setValue(this.plugin.settings.useCompanionDir)
-				.onChange(async (value) => {
-					this.plugin.settings.useCompanionDir = value;
-					await this.plugin.saveSettings();
-					this.display();
-				})
-			);
-
-		new Setting(containerEl).setName('Resources folder')
-			.setDesc('Where to place your resources?')
-			.addText((text) => text
-				.setPlaceholder(DEFAULT_SETTINGS.resourcesPath)
-				.setValue(this.plugin.settings.resourcesPath)
-				.onChange(
-					debounce(async (value) => {
-						this.plugin.settings.resourcesPath = normalizePath(value);
-						await this.plugin.saveSettings();
-					}, 500)
-				)
-			);
-
-		new Setting(containerEl).setName('Archive folder')
-			.setDesc('Where to place your archived files?')
-			.addText((text) => text
-				.setPlaceholder(DEFAULT_SETTINGS.archivePath)
-				.setValue(this.plugin.settings.archivePath)
-				.onChange(
-					debounce(async (value) => {
-						this.plugin.settings.archivePath = normalizePath(value);
-						await this.plugin.saveSettings();
-					}, 500)
-				)
-			);
+	override async setControlValue(key: string, value: unknown): Promise<void> {
+		await super.setControlValue(key, typeof value === 'string' ? normalizePath(value) : value);
 	}
 }

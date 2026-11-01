@@ -1,6 +1,9 @@
-import { TFile } from "obsidian";
+import type { TFile } from 'obsidian';
 
-export interface PluginSettings {
+export const PARA_TYPES = ['project', 'area', 'resource'] as const;
+export type ParaType = (typeof PARA_TYPES)[number];
+
+export type PluginSettings = {
 	projectsPath: string;
 	useFolderStructure: boolean;
 	areasPath: string;
@@ -11,29 +14,15 @@ export interface PluginSettings {
 	projectTemplateName: string;
 	areaTemplateName: string;
 	resourceTemplateName: string;
+};
+
+export interface NewItem {
+	name: string;
+	/** Only used for projects. Empty when no area was given. */
+	area: string;
 }
 
-export interface CreateProjectProps {
-	name: string | null;
-	area: string | null;
-}
-
-export interface CreateAreaProps {
-	name: string | null;
-}
-
-export interface CreateResourceProps {
-	name: string | null;
-}
-
-export enum ParaType {
-	Project = 'project',
-	Resource = 'resource',
-	Area = 'area'
-}
-
-export interface ArchiveItem {
+export interface ArchivedItem {
 	file: TFile;
-	type: ParaType | null;
+	type: ParaType;
 }
-

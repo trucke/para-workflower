@@ -1,104 +1,41 @@
-import { App, Notice, Plugin, TFile, TFolder } from 'obsidian';
-import { warnIfDataviewDisabled } from './dataview';
+import { Notice, Plugin } from 'obsidian';
+import type { TFile } from 'obsidian';
 
-import {
-	CreateProjectModal,
-	createProject,
-} from './para-project';
-import { DEFAULT_SETTINGS, SettingTab } from './settings';
-import { initializeVault } from './init';
-import {
-	type CreateProjectProps,
-	type CreateAreaProps,
-	type CreateResourceProps,
-	type PluginSettings,
-	type ArchiveItem,
-	ParaType
-} from './types';
-import { CreateAreaModal, createArea } from './para-area';
-import { CreateResourceModal, createResource } from './para-resource';
 import { archive, completeProject } from './command-utils/archive';
-import { restore } from './command-utils/restore';
-import { RestoreParaItemModal } from './modals/RestoreParaItemModal';
-
+import { getArchivedItems, restore, restoreByType } from './command-utils/restore';
+import { createItem } from './create';
+import { warnIfDataviewDisabled } from './dataview';
+import { initializeVault } from './init';
+import { CreateItemModal } from './modals/CreateItemModal';
+import { RestoreItemModal } from './modals/RestoreItemModal';
+import { SettingTab, parseSettings } from './settings';
+import type { ParaType, PluginSettings } from './types';
+import { UserError } from './utils';
 
 export default class ParaWorkflower extends Plugin {
 	settings!: PluginSettings;
 
-	async onload() {
-		await this.loadSettings();
+	override async onload(): Promise<void> {
+		this.settings = parseSettings(await this.loadData());
 
 		this.addCommand({
 			id: 'init-vault',
 			name: 'Initialize vault',
-			callback: () => {
-				initializeVault(this.app.vault, this.settings).then(() => {
-					new Notice('Vault initialized', 5000);
-					warnIfDataviewDisabled(this.app);
-				});
-			}
-		})
-
-		this.addCommand({
-			id: 'create-project',
-			name: 'Create new project',
-			callback: () => {
-				new CreateProjectModal(this.app, (result: CreateProjectProps) => {
-					createProject(this.app, this.settings, result).then(() => {
-						new Notice(`Project '${result.name}' created!`);
-					}).catch((error) => {
-						if (typeof error == 'string') {
-							new Notice(error);
-						}
-						console.log(error);
-					});
-				}).open();
-			},
+			callback: () => void this.run(async () => {
+				await initializeVault(this.app.vault, this.settings);
+				warnIfDataviewDisabled(this.app);
+				return 'Vault initialized';
+			}),
 		});
 
-		this.addCommand({
-			id: 'create-area',
-			name: 'Create new area',
-			callback: () => {
-				new CreateAreaModal(this.app, (result: CreateAreaProps) => {
-					createArea(this.app, this.settings, result).then(() => {
-						new Notice(`Area '${result.name}' created!`);
-						warnIfDataviewDisabled(this.app);
-					}).catch(() => { });
-				}).open();
-			},
-		});
-
-		this.addCommand({
-			id: 'create-resource',
-			name: 'Create new resource',
-			callback: () => {
-				new CreateResourceModal(this.app, (result: CreateResourceProps) => {
-					createResource(this.app, this.settings, result).then(() => {
-						new Notice(`Resource '${result.name}' created!`);
-					}).catch(() => { });
-				}).open();
-			},
-		});
+		this.addCreateCommand('project');
+		this.addCreateCommand('area');
+		this.addCreateCommand('resource');
 
 		this.addCommand({
 			id: 'move-to-archive',
 			name: 'Move to archive',
-			callback: () => {
-				const file = this.app.workspace.getActiveFile();
-				if (file !== null) {
-					archive(this.app, this.settings, file)
-						.then(() => {
-							new Notice(`'${file.basename}' archived`);
-						})
-						.catch((error) => {
-							console.error('[PARA Workflower] An error occurred during archiving:', error.message);
-							new Notice(`FAILED: ${error.message}`);
-						});
-				} else {
-					new Notice('There is nothing to archive');
-				}
-			},
+			callback: () => void this.run(() => archive(this.app, this.settings, this.requireActiveFile())),
 		});
 
 		this.addCommand({
@@ -106,92 +43,58 @@ export default class ParaWorkflower extends Plugin {
 			name: 'Restore from archive',
 			callback: () => {
 				const file = this.app.workspace.getActiveFile();
-				if (file !== null && this.isArchived(file)) {
-					restore(this.app, this.settings, file)
-						.then(() => { })
-						.catch((error) => {
-							console.log('[PARA Workflower] An error occurred during restoring:', error.message);
-							new Notice(`FAILED: ${error.message}`);
-						});
-				} else {
-					getArchivedParaItems(this.app, this.settings.archivePath)
-						.then((items) => {
-							new RestoreParaItemModal(this.app, this, items).open();
-						});
+				if (file && file.parent?.path.includes(this.settings.archivePath)) {
+					void this.run(() => restore(this.app, this.settings, file));
+					return;
 				}
+				const items = getArchivedItems(this.app, this.settings.archivePath);
+				new RestoreItemModal(this.app, items, (item) =>
+					void this.run(() => restoreByType(this.app, this.settings, item.file, item.type))).open();
 			},
 		});
 
 		this.addCommand({
 			id: 'complete-current-project',
 			name: 'Complete project',
-			callback: () => {
-				const file = this.app.workspace.getActiveFile();
-				if (file !== null) {
-					completeProject(this.app, this.settings, file).then(() => {
-						new Notice('Project completed and moved to archive');
-					});
-				}
-			},
+			callback: () => void this.run(() => completeProject(this.app, this.settings, this.requireActiveFile())),
 		});
 
 		this.addSettingTab(new SettingTab(this.app, this));
 	}
 
-	onunload() { }
-
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
-
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
-
-	isArchived(file: TFile): boolean {
-		if (file.parent === null) {
-			return false;
-		}
-
-		return file.parent.path.contains(this.settings.archivePath);
-	}
-}
-
-async function getArchivedParaItems(app: App, archivePath: string) {
-	const items: ArchiveItem[] = [];
-	const archive = app.vault.getFolderByPath(archivePath);
-	if (archive) {
-		await walkArchive(archive, items, app);
-	}
-
-	return items;
-}
-
-async function walkArchive(folder: TFolder, items: ArchiveItem[], app: App) {
-	for (const child of folder.children) {
-		if (child instanceof TFolder && !child.name.startsWith('_')) {
-			await walkArchive(child, items, app);
-		}
-
-		if (child instanceof TFile) {
-			await app.fileManager.processFrontMatter(child, (frontMatter) => {
-				const tags = (frontMatter.tags as Array<string>) || null;
-				if (tags !== null) {
-					const archiveItem: ArchiveItem = { file: child, type: null };
-					if (tags.contains(ParaType.Project)) {
-						archiveItem.type = ParaType.Project;
-					} else if (tags.contains(ParaType.Resource)) {
-						archiveItem.type = ParaType.Resource;
-					} else if (tags.contains(ParaType.Area)) {
-						archiveItem.type = ParaType.Area;
-					}
-
-					if (archiveItem.type !== null) {
-						items.push(archiveItem);
-					}
+	private addCreateCommand(type: ParaType): void {
+		this.addCommand({
+			id: `create-${type}`,
+			name: `Create new ${type}`,
+			callback: () => new CreateItemModal(this.app, type, (item) => void this.run(async () => {
+				const message = await createItem(this.app, this.settings, type, item);
+				if (type === 'area') {
+					warnIfDataviewDisabled(this.app);
 				}
-			});
+				return message;
+			})).open(),
+		});
+	}
+
+	private requireActiveFile(): TFile {
+		const file = this.app.workspace.getActiveFile();
+		if (!file) {
+			throw new UserError('Open a project, area or resource first');
+		}
+		return file;
+	}
+
+	/** Runs a command action and reports its result or error as a notice. */
+	private async run(action: () => Promise<string>): Promise<void> {
+		try {
+			new Notice(await action());
+		} catch (error) {
+			if (error instanceof UserError) {
+				new Notice(error.message);
+				return;
+			}
+			console.error('[PARA Workflower]', error);
+			new Notice(`Something went wrong: ${error instanceof Error ? error.message : String(error)}`);
 		}
 	}
 }
-
