@@ -13,6 +13,8 @@ export default defineConfig(
 		'package.json',
 		'package-lock.json',
 		'tsconfig.json',
+		// Unit tests run in Node, not in Obsidian. tsc still type-checks them.
+		'src/**/*.test.ts',
 	]),
 	{
 		languageOptions: {

@@ -1,13 +1,13 @@
 import { Notice, Plugin } from 'obsidian';
 import type { TFile } from 'obsidian';
 
-import { archive, completeProject } from './command-utils/archive';
-import { getArchivedItems, restore, restoreByType } from './command-utils/restore';
+import { archiveItem, completeProject, getArchivedItems, restoreItem } from './archive';
 import { createItem } from './create';
 import { warnIfDataviewDisabled } from './dataview';
 import { initializeVault } from './init';
 import { CreateItemModal } from './modals/CreateItemModal';
 import { RestoreItemModal } from './modals/RestoreItemModal';
+import { isInFolder } from './paths';
 import { SettingTab, parseSettings } from './settings';
 import type { ParaType, PluginSettings } from './types';
 import { UserError } from './utils';
@@ -35,7 +35,7 @@ export default class ParaWorkflower extends Plugin {
 		this.addCommand({
 			id: 'move-to-archive',
 			name: 'Move to archive',
-			callback: () => void this.run(() => archive(this.app, this.settings, this.requireActiveFile())),
+			callback: () => void this.run(() => archiveItem(this.app, this.settings, this.requireActiveFile())),
 		});
 
 		this.addCommand({
@@ -43,13 +43,13 @@ export default class ParaWorkflower extends Plugin {
 			name: 'Restore from archive',
 			callback: () => {
 				const file = this.app.workspace.getActiveFile();
-				if (file && file.parent?.path.includes(this.settings.archivePath)) {
-					void this.run(() => restore(this.app, this.settings, file));
+				if (file && isInFolder(file.path, this.settings.archivePath)) {
+					void this.run(() => restoreItem(this.app, this.settings, file));
 					return;
 				}
 				const items = getArchivedItems(this.app, this.settings.archivePath);
 				new RestoreItemModal(this.app, items, (item) =>
-					void this.run(() => restoreByType(this.app, this.settings, item.file, item.type))).open();
+					void this.run(() => restoreItem(this.app, this.settings, item.file))).open();
 			},
 		});
 

@@ -28,9 +28,19 @@ export async function createItem(app: App, settings: PluginSettings, type: ParaT
 		throw new UserError(`The template '${templatePath}' does not exist`);
 	}
 
-	const itemFolder = type === 'project' && settings.useFolderStructure ? joinPath(folder, name) : folder;
+	const ownFolder = type === 'project' && settings.useFolderStructure;
+	const itemFolder = ownFolder ? joinPath(folder, name) : folder;
+	const path = joinPath(itemFolder, `${name}.md`);
+	// A project's own folder moves with it when archived, so never adopt one that holds other notes.
+	if (ownFolder && await app.vault.adapter.exists(itemFolder) && app.vault.getFolderByPath(itemFolder)?.children.length !== 0) {
+		throw new UserError(`The folder '${itemFolder}' already exists. Choose another name or move that folder first.`);
+	}
+	if (await app.vault.adapter.exists(path)) {
+		throw new UserError(`'${path}' already exists`);
+	}
+
 	await ensureFolder(app, itemFolder);
-	const file = await app.vault.create(joinPath(itemFolder, `${name}.md`), await app.vault.cachedRead(template));
+	const file = await app.vault.create(path, await app.vault.cachedRead(template));
 
 	if (type === 'area' && settings.useCompanionDir) {
 		await ensureFolder(app, joinPath(folder, `_${name.toLowerCase()}`));

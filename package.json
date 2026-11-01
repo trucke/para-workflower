@@ -9,6 +9,7 @@
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc && node esbuild.config.mjs production",
 		"lint": "eslint .",
+		"test": "node --test",
 		"version": "node version-bump.mjs"
 	},
 	"author": "KevTheDevX",
