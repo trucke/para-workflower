@@ -4,6 +4,7 @@ import type { SettingDefinitionItem } from 'obsidian';
 import type { PluginSettings } from './types';
 
 export const DEFAULT_SETTINGS: PluginSettings = {
+	inboxPath: '0-Inbox',
 	projectsPath: '1-Projects',
 	useFolderStructure: false,
 	areasPath: '2-Areas',
@@ -29,6 +30,11 @@ export function parseSettings(data: unknown): PluginSettings {
 export class SettingTab extends PluginSettingTab {
 	override getSettingDefinitions(): SettingDefinitionItem<keyof PluginSettings>[] {
 		return [
+			{
+				name: 'Inbox folder',
+				desc: 'Created by "Initialize vault". Leave empty for no inbox. To collect new notes there, set it as the default location for new notes under Files and links.',
+				control: { type: 'folder', key: 'inboxPath', placeholder: 'No inbox' },
+			},
 			{
 				name: 'Projects folder',
 				desc: 'Where to place your projects.',
@@ -63,6 +69,11 @@ export class SettingTab extends PluginSettingTab {
 	}
 
 	override async setControlValue(key: string, value: unknown): Promise<void> {
-		await super.setControlValue(key, typeof value === 'string' ? normalizePath(value) : value);
+		// normalizePath turns an empty value into '/', but empty means "no folder" here.
+		if (typeof value === 'string') {
+			await super.setControlValue(key, value.trim() === '' ? '' : normalizePath(value));
+		} else {
+			await super.setControlValue(key, value);
+		}
 	}
 }
