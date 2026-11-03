@@ -31,6 +31,7 @@
 		"url": "git+https://github.com/trucke/para-workflower.git"
 	},
 	"overrides": {
-		"moment": "^2.31.0"
+		"moment": "^2.31.0",
+		"minimatch": "^11.0.4"
 	}
 }
