@@ -7,7 +7,7 @@ This plugin offers you a handful of very useful commands to
 - Easily archive your PARA items (Project, Area, Resource) using the plugin commands
 - Restore projects, areas and resources directly or via the plugin's handy fuzzy search function
 
-To see all changes to the plugin, go to https://github.com/trucke/para-workflower/releases.
+To see all changes to the plugin, go to https://github.com/sudokvn/para-workflower/releases.
 
 ---
 
@@ -33,7 +33,7 @@ Requires Obsidian 1.14.4 or later.
 
 #### Manual
 
-Go to the [releases](https://github.com/trucke/para-workflower/releases) and download the latest `main.js`, `manifest.json` and `styles.css` files.
+Go to the [releases](https://github.com/sudokvn/para-workflower/releases) and download the latest `main.js`, `manifest.json` and `styles.css` files.
 Create a folder called `para-workflower` inside `.obsidian/plugins` and place the files in it.
 
 

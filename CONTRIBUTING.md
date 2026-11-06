@@ -4,7 +4,7 @@ Bug reports, ideas and pull requests are welcome.
 
 ## Report a bug or suggest a feature
 
-Open an [issue](https://github.com/trucke/para-workflower/issues). For bugs, include:
+Open an [issue](https://github.com/sudokvn/para-workflower/issues). For bugs, include:
 
 - the Obsidian version and platform (desktop or mobile)
 - the plugin version
@@ -23,7 +23,7 @@ You need Git and Node.js 26. If you use [mise](https://mise.jdx.dev/), run `mise
 
    ```sh
    cd <test-vault>/.obsidian/plugins
-   git clone https://github.com/trucke/para-workflower.git
+   git clone https://github.com/sudokvn/para-workflower.git
    cd para-workflower
    ```
 

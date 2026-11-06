@@ -28,7 +28,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/trucke/para-workflower.git"
+		"url": "git+https://github.com/sudokvn/para-workflower.git"
 	},
 	"overrides": {
 		"moment": "^2.31.0",
